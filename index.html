@@ -1,0 +1,2932 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Quản Lý Dây Kéo & Gara</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --app-font: 'Inter', sans-serif;
+            --app-text-color: #0f172a;
+            --bg-main: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-sub: #f8fafc;
+            --border-color: #e2e8f0;
+            --header-grad: linear-gradient(135deg, #3730a3 0%, #4338ca 50%, #1d4ed8 100%);
+        }
+        body {
+            font-family: var(--app-font) !important;
+            color: var(--app-text-color) !important;
+            background-color: var(--bg-main) !important;
+            -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.25s ease, color 0.2s ease;
+        }
+        .header-themed {
+            background: var(--header-grad) !important;
+        }
+        .card-surface {
+            background-color: var(--bg-card) !important;
+            border-color: var(--border-color) !important;
+            color: var(--app-text-color) !important;
+        }
+        .sub-surface {
+            background-color: var(--bg-sub) !important;
+            border-color: var(--border-color) !important;
+        }
+        body.custom-color-active .dynamic-text {
+            color: var(--app-text-color) !important;
+        }
+        /* Tương thích hoàn hảo cho các Chủ Đề Tối */
+        body.theme-is-dark input,
+        body.theme-is-dark select {
+            background-color: #0f172a !important;
+            color: #f8fafc !important;
+            border-color: #334155 !important;
+        }
+        body.theme-is-dark .text-slate-600,
+        body.theme-is-dark .text-slate-700,
+        body.theme-is-dark .text-slate-800,
+        body.theme-is-dark .text-slate-900 {
+            color: #e2e8f0 !important;
+        }
+        body.theme-is-dark .text-slate-500 {
+            color: #94a3b8 !important;
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+
+        .btn-press {
+            transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.15s ease;
+            user-select: none;
+            cursor: pointer;
+        }
+        .btn-press:active {
+            transform: scale(0.95);
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.35; }
+        }
+        .live-dot {
+            animation: pulse-dot 1.8s infinite;
+        }
+        @keyframes modalPop {
+            0% { opacity: 0; transform: scale(0.95) translateY(6px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-animate {
+            animation: modalPop 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes flashHighlight {
+            0% { transform: scale(0.98); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.5); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        .flash-saved {
+            animation: flashHighlight 0.6s ease-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <div id="toastContainer" class="fixed top-3 left-1/2 -translate-x-1/2 z-[120] flex flex-col items-center gap-2 max-w-md w-[94vw] pointer-events-none"></div>
+
+    <!-- Header -->
+    <header class="header-themed text-white shadow-lg sticky top-0 z-30 transition-all duration-300">
+        <div class="max-w-6xl mx-auto px-3.5 sm:px-5 py-3 flex items-center justify-between gap-2">
+            <div class="flex items-center space-x-3 min-w-0">
+                <button type="button" id="menuBtn" class="p-2.5 rounded-xl bg-white/15 hover:bg-white/25 btn-press focus:outline-none relative shrink-0" title="Mở Menu 3 Gạch">
+                    <i class="fa-solid fa-bars text-xl pointer-events-none"></i>
+                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full border-2 border-indigo-800 pointer-events-none"></span>
+                </button>
+                <div class="min-w-0">
+                    <div class="flex items-center space-x-2">
+                        <h1 class="font-extrabold text-base sm:text-xl tracking-tight truncate">Quản Lý Dây Kéo & Gara</h1>
+                        <span id="syncBadge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-400/20 text-emerald-200 border border-emerald-400/40 shrink-0">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 live-dot mr-1"></span>Online 
+                        </span>
+                    </div>
+                    <p class="text-xs text-white/85 flex items-center gap-1.5 mt-0.5 truncate">
+                        <i class="fa-solid fa-mobile-screen-button text-amber-300"></i>
+                        <span id="currentIdentityDisplay" class="truncate">Đang nhận diện thiết bị...</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
+                <button type="button" data-action="open-create-modal" class="flex items-center space-x-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold px-3 sm:px-3.5 py-2 rounded-xl shadow-md btn-press text-xs">
+                    <i class="fa-solid fa-plus pointer-events-none"></i>
+                    <span class="pointer-events-none">Tạo Job</span>
+                </button>
+                <button type="button" data-action="cycle-theme" class="px-2.5 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-amber-300 btn-press flex items-center gap-1.5" title="Bấm để chuyển đổi giữa 8 Chủ Đề đẹp mắt">
+                    <i id="themeToggleHeaderIcon" class="fa-solid fa-palette text-sm pointer-events-none"></i>
+                    <span id="headerThemeBadge" class="hidden sm:inline text-[11px] font-extrabold text-white pointer-events-none">Sáng</span>
+                </button>
+                <button type="button" data-action="toggle-sound" class="p-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-emerald-300 btn-press" title="Bật / Tắt Âm Thanh">
+                    <i id="soundToggleHeaderIcon" class="fa-solid fa-volume-high text-base pointer-events-none"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div id="drawerOverlay" class="fixed inset-0 bg-slate-950/65 backdrop-blur-sm z-40 hidden transition-opacity"></div>
+    <aside id="sideDrawer" class="fixed top-0 left-0 bottom-0 w-85 max-w-[92vw] card-surface bg-white shadow-2xl z-50 transform -translate-x-full transition-transform duration-300 flex flex-col border-r border-slate-200">
+        <div class="p-4 header-themed text-white flex items-center justify-between shrink-0">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center font-bold">
+                    <i class="fa-solid fa-sliders"></i>
+                </div>
+                <div>
+                    <h2 class="font-bold text-base">Menu & Công Cụ</h2>
+                    <p class="text-xs text-white/80">Created By Nguyễn Minh Thiện😼😽</p>
+                </div>
+            </div>
+            <button type="button" id="closeDrawerBtn" class="p-2 text-white/80 hover:text-white rounded-lg">
+                <i class="fa-solid fa-xmark text-xl pointer-events-none"></i>
+            </button>
+        </div>
+
+        <div class="p-4 overflow-y-auto flex-1 space-y-5">
+            <div class="bg-gradient-to-r from-amber-500 to-orange-500 p-1 rounded-2xl shadow-md">
+                <button type="button" data-action="open-create-from-drawer" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2.5 text-sm sm:text-base shadow-inner btn-press">
+                    <i class="fa-solid fa-folder-plus text-lg pointer-events-none"></i>
+                    <span class="pointer-events-none">+ TẠO JOB (ĐƠN HÀNG) MỚI</span>
+                </button>
+            </div>
+
+            <div class="sub-surface bg-slate-100 p-3.5 rounded-2xl border border-slate-200 space-y-3.5">
+                <div class="text-xs font-extrabold uppercase text-slate-600 flex items-center justify-between">
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-wand-magic-sparkles text-indigo-600"></i> 8 Chủ Đề Giao Diện</span>
+                    <button type="button" data-action="cycle-theme" class="text-[11px] font-bold text-indigo-600 hover:underline flex items-center gap-1">
+                        <i class="fa-solid fa-rotate pointer-events-none"></i> Đổi nhanh
+                    </button>
+                </div>
+
+                <!-- Bảng chọn 8 Chủ Đề Đẹp Mắt -->
+                <div id="themeGridContainer" class="grid grid-cols-2 gap-2">
+                    <button type="button" data-action="select-theme" data-theme="light" class="theme-option-btn flex items-center gap-2 p-2 rounded-xl border-2 text-left text-xs font-extrabold transition btn-press bg-white text-slate-800 border-slate-300">
+                        <span class="w-5 h-5 rounded-lg bg-gradient-to-br from-indigo-600 to-blue-500 shrink-0 shadow-xs"></span>
+                        <span class="truncate pointer-events-none">Sáng Cổ Điển</span>
+                    </button>
+                    <button type="button" data-action="select-theme" data-theme="dark" class="theme-option-btn flex items-center gap-2 p-2 rounded-xl border-2 text-left text-xs font-extrabold transition btn-press bg-slate-900 text-white border-slate-700">
+                        <span class="w-5 h-5 rounded-lg bg-gradient-to-br from-slate-700 to-indigo-950 shrink-0 shadow-xs"></span>
+                        <span class="truncate pointer-events-none">Tối Hiện Đại</span>
+                    </button>
+                    <button type="button" data-action="select-theme" data-theme="ocean" class="theme-option-btn flex items-center gap-2 p-2 rounded-xl border-2 text-left text-xs font-extrabold transition btn-press bg-sky-50 text-sky-950 border-sky-200">
+                        <span class="w-5 h-5 rounded-lg bg-gradient-to-br from-cyan-600 to-blue-700 shrink-0 shadow-xs"></span>
+                        <span class="truncate pointer-events-none">Xanh Đại Dương</span>
+                    </button>
+                    <button type="button" data-action="select-theme" data-theme="emerald" class="theme-option-btn flex items-center gap-2 p-2 rounded-xl border-2 text-left text-xs font-extrabold transition btn-press bg-emerald-50 text-emerald-950 border-emerald-200">
+                        <span class="w-5 h-5 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-700 shrink-0 shadow-xs"></span>
+                        <span class="truncate pointer-events-none">Xanh Ngọc Bích</span>
+                    </button>
+                    <button type="button" data-action="select-theme" data-theme="sunset" class="theme-option-btn flex items-center gap-2 p-2 rounded-xl border-2 text-left text-xs font-extrabold transition btn-press bg-orange-50 text-orange-950 border-orange-200">
+                        <span class="w-5 h-5 rounded-lg bg-gradient-to-br from-orange-600 to-rose-600 shrink-0 shadow-xs"></span>
+                        <span class="truncate pointer-events-none">Hoàng Hôn Ấm</span>
+                    </button>
+                    <button type="button" data-action="select-theme" data-theme="sakura" class="theme-option-btn flex items-center gap-2 p-2 rounded-xl border-2 text-left text-xs font-extrabold transition btn-press bg-pink-50 text-pink-950 border-pink-200">
+                        <span class="w-5 h-5 rounded-lg bg-gradient-to-br from-pink-500 to-rose-600 shrink-0 shadow-xs"></span>
+                        <span class="truncate pointer-events-none">Hồng Anh Đào</span>
+                    </button>
+                    <button type="button" data-action="select-theme" data-theme="royal" class="theme-option-btn flex items-center gap-2 p-2 rounded-xl border-2 text-left text-xs font-extrabold transition btn-press bg-purple-950 text-purple-100 border-purple-800">
+                        <span class="w-5 h-5 rounded-lg bg-gradient-to-br from-purple-600 to-fuchsia-700 shrink-0 shadow-xs"></span>
+                        <span class="truncate pointer-events-none">Tím Hoàng Gia</span>
+                    </button>
+                    <button type="button" data-action="select-theme" data-theme="luxury" class="theme-option-btn flex items-center gap-2 p-2 rounded-xl border-2 text-left text-xs font-extrabold transition btn-press bg-stone-900 text-amber-200 border-amber-700/60">
+                        <span class="w-5 h-5 rounded-lg bg-gradient-to-br from-amber-500 to-yellow-700 shrink-0 shadow-xs"></span>
+                        <span class="truncate pointer-events-none">Đen Vàng Kim</span>
+                    </button>
+                </div>
+
+                <div class="pt-1 border-t border-slate-200/80 flex items-center justify-between gap-2">
+                    <button type="button" data-action="toggle-sound" class="flex-1 card-surface bg-white flex items-center justify-center gap-2 py-2 px-3 rounded-xl font-bold text-xs border border-slate-300 shadow-2xs btn-press">
+                        <i id="drawerSoundIcon" class="fa-solid fa-volume-high text-emerald-600 pointer-events-none"></i>
+                        <span id="drawerSoundText" class="dynamic-text pointer-events-none">Âm thanh: Bật</span>
+                    </button>
+                    <button type="button" data-action="test-sound" class="card-surface bg-white py-2 px-3 rounded-xl font-bold text-xs text-indigo-600 border border-slate-300 btn-press">
+                        <i class="fa-solid fa-play mr-1 pointer-events-none"></i>Nghe thử
+                    </button>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">
+                        <i class="fa-solid fa-music mr-1 text-indigo-500"></i>Kiểu hiệu ứng âm thanh:
+                    </label>
+                    <select id="soundPackSelect" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="crystal">Chuông Pha Lê (Trong trẻo, Đa âm)</option>
+                        <option value="arcade">Điện Tử 8-Bit (Vui nhộn, Rõ ràng)</option>
+                        <option value="chime">Chuông Gió (Êm dịu, Trầm ấm)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">
+                        <i class="fa-solid fa-font mr-1 text-indigo-500"></i>Phông chữ hiển thị:
+                    </label>
+                    <select id="fontFamilySelect" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="'Inter', sans-serif">Inter (Mặc định - Rõ nét)</option>
+                        <option value="'Be Vietnam Pro', sans-serif">Be Vietnam Pro (Hiện đại, Đậm)</option>
+                        <option value="'Roboto', sans-serif">Roboto (Công nghiệp, Cứng cáp)</option>
+                        <option value="'JetBrains Mono', monospace">JetBrains Mono (Kiểu Số Kỹ Thuật)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1.5">
+                        <i class="fa-solid fa-brush mr-1 text-indigo-500"></i>Màu chữ toàn trang:
+                    </label>
+                    <div class="grid grid-cols-6 gap-1.5 items-center">
+                        <button type="button" data-action="change-color" data-color="default" class="col-span-2 py-1.5 rounded-lg text-[11px] font-extrabold border border-slate-300 bg-white text-slate-800 shadow-2xs btn-press">Theo chủ đề</button>
+                        <button type="button" data-action="change-color" data-color="#1d4ed8" class="h-8 rounded-lg bg-blue-700 text-white text-xs font-bold border-2 border-white shadow-xs btn-press" title="Xanh Dương">A</button>
+                        <button type="button" data-action="change-color" data-color="#047857" class="h-8 rounded-lg bg-emerald-700 text-white text-xs font-bold border-2 border-white shadow-xs btn-press" title="Xanh Lá">A</button>
+                        <button type="button" data-action="change-color" data-color="#6d28d9" class="h-8 rounded-lg bg-violet-700 text-white text-xs font-bold border-2 border-white shadow-xs btn-press" title="Tím Đậm">A</button>
+                        <button type="button" data-action="change-color" data-color="#be123c" class="h-8 rounded-lg bg-rose-700 text-white text-xs font-bold border-2 border-white shadow-xs btn-press" title="Đỏ Đô">A</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Máy Tính Bỏ Túi -->
+            <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-inner">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-calculator"></i> Máy Tính Bỏ Túi
+                    </span>
+                    <span class="text-[10px] text-slate-400">1 quần = 2 cọng | 1 bịch = 100c</span>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl p-3 mb-2.5 text-right border border-slate-700">
+                    <div id="calcExpression" class="text-xs text-slate-400 h-4 overflow-hidden font-mono"></div>
+                    <div id="calcScreen" class="text-2xl font-extrabold font-mono tracking-wider text-emerald-400 truncate">0</div>
+                    <div id="calcZipperHint" class="text-[11px] text-indigo-300 mt-1 border-t border-slate-700 pt-1">
+                        = 0 cọng dây kéo (0 bịch)
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-1.5 mb-2">
+                    <button type="button" data-action="calc-convert" data-mode="pantsToZippers" class="bg-indigo-950 hover:bg-indigo-900 border border-indigo-700 text-indigo-200 text-xs py-1.5 px-2 rounded-lg font-bold btn-press">
+                        Số Quần × 2 ➔ Cọng
+                    </button>
+                    <button type="button" data-action="calc-convert" data-mode="zippersToBags" class="bg-indigo-950 hover:bg-indigo-900 border border-indigo-700 text-indigo-200 text-xs py-1.5 px-2 rounded-lg font-bold btn-press">
+                        Số Cọng ÷ 100 ➔ Bịch
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-4 gap-1.5 text-center font-bold">
+                    <button type="button" data-action="calc-key" data-key="C" class="btn-press bg-rose-600 hover:bg-rose-500 text-white py-2.5 rounded-xl text-sm">C</button>
+                    <button type="button" data-action="calc-key" data-key="DEL" class="btn-press bg-slate-700 hover:bg-slate-600 text-slate-200 py-2.5 rounded-xl text-sm"><i class="fa-solid fa-delete-left pointer-events-none"></i></button>
+                    <button type="button" data-action="calc-key" data-key="%" class="btn-press bg-slate-700 hover:bg-slate-600 text-slate-200 py-2.5 rounded-xl text-sm">%</button>
+                    <button type="button" data-action="calc-key" data-key="/" class="btn-press bg-amber-500 hover:bg-amber-400 text-slate-950 py-2.5 rounded-xl text-base">÷</button>
+
+                    <button type="button" data-action="calc-key" data-key="7" class="btn-press bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-base">7</button>
+                    <button type="button" data-action="calc-key" data-key="8" class="btn-press bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-base">8</button>
+                    <button type="button" data-action="calc-key" data-key="9" class="btn-press bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-base">9</button>
+                    <button type="button" data-action="calc-key" data-key="*" class="btn-press bg-amber-500 hover:bg-amber-400 text-slate-950 py-2.5 rounded-xl text-base">×</button>
+
+                    <button type="button" data-action="calc-key" data-key="4" class="btn-press bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-base">4</button>
+                    <button type="button" data-action="calc-key" data-key="5" class="btn-press bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-base">5</button>
+                    <button type="button" data-action="calc-key" data-key="6" class="btn-press bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-base">6</button>
+                    <button type="button" data-action="calc-key" data-key="-" class="btn-press bg-amber-500 hover:bg-amber-400 text-slate-950 py-2.5 rounded-xl text-base">−</button>
+
+                    <button type="button" data-action="calc-key" data-key="1" class="btn-press bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-base">1</button>
+                    <button type="button" data-action="calc-key" data-key="2" class="btn-press bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-base">2</button>
+                    <button type="button" data-action="calc-key" data-key="3" class="btn-press bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-base">3</button>
+                    <button type="button" data-action="calc-key" data-key="+" class="btn-press bg-amber-500 hover:bg-amber-400 text-slate-950 py-2.5 rounded-xl text-base">+</button>
+
+                    <button type="button" data-action="calc-key" data-key="0" class="btn-press col-span-2 bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-base">0</button>
+                    <button type="button" data-action="calc-key" data-key="." class="btn-press bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-base">.</button>
+                    <button type="button" data-action="calc-key" data-key="=" class="btn-press bg-emerald-500 hover:bg-emerald-400 text-slate-950 py-2.5 rounded-xl text-base">=</button>
+                </div>
+            </div>
+
+            <!-- Lịch Tháng -->
+            <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-inner border border-slate-800">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-calendar-days"></i> Lịch Tháng
+                    </span>
+                    <button type="button" data-action="cal-today" class="text-[11px] bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-500/40 px-2.5 py-0.5 rounded-lg font-bold btn-press">
+                        Hôm nay
+                    </button>
+                </div>
+
+                <div class="flex items-center justify-between bg-slate-800 rounded-xl px-2.5 py-2 mb-3 border border-slate-700">
+                    <button type="button" data-action="cal-nav" data-delta="-1" class="w-8 h-8 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 flex items-center justify-center btn-press">
+                        <i class="fa-solid fa-chevron-left text-xs pointer-events-none"></i>
+                    </button>
+                    <div class="text-center">
+                        <div id="calMonthYearTitle" class="text-sm font-extrabold text-emerald-400 tracking-wide">Tháng ...</div>
+                        <div id="calTodaySubtext" class="text-[10px] text-slate-400 font-medium">...</div>
+                    </div>
+                    <button type="button" data-action="cal-nav" data-delta="1" class="w-8 h-8 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 flex items-center justify-center btn-press">
+                        <i class="fa-solid fa-chevron-right text-xs pointer-events-none"></i>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-extrabold text-slate-400 mb-1.5">
+                    <div>T2</div>
+                    <div>T3</div>
+                    <div>T4</div>
+                    <div>T5</div>
+                    <div>T6</div>
+                    <div class="text-amber-400">T7</div>
+                    <div class="text-rose-400">CN</div>
+                </div>
+
+                <div id="calendarDaysGrid" class="grid grid-cols-7 gap-1 text-center text-xs font-bold"></div>
+            </div>
+
+            <!-- Lưu Tên Ở Cuối Cùng -->
+            <div class="sub-surface bg-slate-100 p-3.5 rounded-2xl border border-slate-200">
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="block text-xs font-extrabold uppercase text-slate-600">
+                        <i class="fa-solid fa-user-pen mr-1 text-indigo-600"></i>Nhập tên, thay đổi tên
+                    </label>
+                    <span id="savedNameBadge" class="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full hidden">Đã lưu</span>
+                </div>
+                <div class="flex space-x-2">
+                    <input type="text" id="drawerUserNameInput" placeholder="Để trống = lấy tên máy..." class="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <button type="button" id="saveUserNameBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-extrabold btn-press">Lưu</button>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1.5">
+                    Đang hiển thị: <span id="drawerSavedIdentityPreview" class="font-bold text-indigo-600">...</span>
+                </p>
+                <p class="text-[10px] text-slate-400 mt-0.5">
+                    Thiết bị: <span id="detectedDeviceName" class="font-semibold text-slate-500">...</span>
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Popup Chào mừng lần đầu -->
+    <div id="firstVisitModal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="card-surface bg-white rounded-3xl max-w-sm w-full shadow-2xl overflow-hidden border border-slate-200 modal-animate">
+            <div class="header-themed text-white px-5 py-4 flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl bg-white/15 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-id-badge text-amber-300"></i>
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-base">Chào mừng bạn!</h3>
+                    <p class="text-xs text-indigo-200">Lưu tên một lần duy nhất trên máy</p>
+                </div>
+            </div>
+            <div class="p-5 space-y-4">
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    Nhập tên của bạn để hiển thị khi bấm <strong>Xác nhận Vắt Sổ</strong> hoặc <strong>Hoàn thành Rập Dây Kéo</strong>. Bạn có thể bỏ qua hoặc đổi lại ở cuối menu 3 gạch.
+                </p>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Tên của bạn</label>
+                    <input type="text" id="firstVisitNameInput" placeholder="Cho xin tên iii>3<." class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <p class="text-[11px] text-slate-400 mt-1.5">
+                        Nếu bỏ qua, sẽ hiện tên máy: <strong id="firstVisitDevicePreview" class="text-slate-600">...</strong>
+                    </p>
+                </div>
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" data-action="first-visit-skip" class="px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-600 text-xs font-bold hover:bg-slate-100">
+                        Bỏ qua
+                    </button>
+                    <button type="button" data-action="first-visit-save" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold shadow-md">
+                        Lưu Tên
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nội dung chính -->
+    <main class="max-w-6xl w-full mx-auto px-3 sm:px-5 py-4 flex-1 space-y-4">
+
+        <section class="grid grid-cols-3 gap-2 sm:gap-4">
+            <div class="card-surface bg-white p-3 sm:p-4 rounded-2xl shadow-xs border border-slate-200/90 flex items-center space-x-2.5 sm:space-x-3">
+                <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center text-sm sm:text-xl font-bold shrink-0">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[11px] sm:text-xs text-slate-500 font-extrabold leading-tight">Tổng Số Job</p>
+                    <p id="statTotalJobs" class="text-lg sm:text-2xl font-extrabold dynamic-text text-slate-900 mt-0.5">0</p>
+                </div>
+            </div>
+
+            <div class="card-surface bg-white p-3 sm:p-4 rounded-2xl shadow-xs border border-slate-200/90 flex items-center space-x-2.5 sm:space-x-3">
+                <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-sm sm:text-xl font-bold shrink-0">
+                    <i class="fa-solid fa-scissors"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[11px] sm:text-xs text-slate-500 font-extrabold leading-tight">Đã Vắt Sổ</p>
+                    <p id="statActiveVatSoJobs" class="text-lg sm:text-2xl font-extrabold text-amber-600 mt-0.5">0</p>
+                </div>
+            </div>
+
+            <div class="card-surface bg-white p-3 sm:p-4 rounded-2xl shadow-xs border border-slate-200/90 flex items-center space-x-2.5 sm:space-x-3">
+                <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm sm:text-xl font-bold shrink-0">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[11px] sm:text-xs text-slate-500 font-extrabold leading-tight">Hoàn Thành</p>
+                    <p id="statCompletedJobs" class="text-lg sm:text-2xl font-extrabold text-emerald-600 mt-0.5">0</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="card-surface bg-white p-3.5 rounded-2xl shadow-xs border border-slate-200/90 space-y-2.5">
+            <div class="flex flex-col sm:flex-row gap-2.5">
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="searchInput" placeholder="Tìm Mã đơn, tên Job, màu, size (tìm trong tất cả đơn)..." class="w-full pl-10 pr-9 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <button type="button" id="clearSearchBtn" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="flex gap-1.5 overflow-x-auto pb-0.5 sm:pb-0">
+                    <button type="button" data-filter="active" class="filter-tab px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap bg-indigo-600 text-white shadow-2xs">
+                        Đang làm
+                    </button>
+                    <button type="button" data-filter="completed" class="filter-tab px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200">
+                        Đã hoàn thành
+                    </button>
+                    <button type="button" data-filter="all" class="filter-tab px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200">
+                        Tất cả
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="jobsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3.5 pb-12">
+            <div class="col-span-full card-surface bg-white rounded-2xl p-10 text-center border border-slate-200">
+                <i class="fa-solid fa-circle-notch fa-spin text-3xl text-indigo-600 mb-3"></i>
+                <p class="font-bold text-slate-700">Đang đồng bộ danh sách Job từ đám mây...</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Cửa sổ Xem Chi Tiết Job -->
+    <div id="jobDetailModal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-40 hidden items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
+        <div id="jobDetailModalContent" class="card-surface bg-white rounded-3xl max-w-xl w-full shadow-2xl overflow-hidden my-auto border border-slate-200 modal-animate flex flex-col max-h-[94vh]">
+        </div>
+    </div>
+
+    <!-- Cửa sổ Xem & Tải Ảnh Phiếu Job -->
+    <div id="imagePreviewModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[90] hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="card-surface bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden my-auto border border-slate-200 modal-animate flex flex-col">
+            <div class="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between">
+                <h3 class="font-extrabold text-sm sm:text-base flex items-center gap-2">
+                    <i class="fa-solid fa-image text-emerald-400"></i> Ảnh Phiếu Thông Tin Job
+                </h3>
+                <button type="button" data-action="close-image-modal" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-xl pointer-events-none"></i>
+                </button>
+            </div>
+            <div class="p-4 bg-slate-100 flex flex-col items-center space-y-3">
+                <img id="generatedJobImageEl" src="" alt="Phiếu thông tin Job" class="w-full rounded-2xl shadow-md border border-slate-300 bg-white">
+                <p class="text-[11px] text-slate-600 text-center font-medium">
+                    <i class="fa-solid fa-hand-pointer text-indigo-600 mr-1"></i>Nhấn nút <strong>Lưu / Tải Ảnh Về Máy</strong> bên dưới hoặc <strong>nhấn giữ vào hình ảnh</strong> để Lưu vào thư viện ảnh.
+                </p>
+            </div>
+            <div class="p-4 bg-white border-t border-slate-200 flex items-center justify-between gap-2">
+                <button type="button" data-action="close-image-modal" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-xs font-extrabold hover:bg-slate-100">
+                    Đóng
+                </button>
+                <button type="button" data-action="manual-download-image" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-2.5 px-4 rounded-xl text-xs sm:text-sm text-center shadow-md btn-press flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-download pointer-events-none"></i> <span class="pointer-events-none">Lưu / Tải Ảnh Về Máy Ngay</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cửa sổ Tạo / Chỉnh sửa đầy đủ Job -->
+    <div id="jobModal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-[80] hidden items-center justify-center p-3 overflow-y-auto">
+        <div class="card-surface bg-white rounded-3xl max-w-xl w-full shadow-2xl overflow-hidden my-auto border border-slate-200 modal-animate">
+            <div class="header-themed text-white px-5 py-4 flex items-center justify-between">
+                <h3 id="jobModalTitle" class="font-extrabold text-base sm:text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-folder-plus"></i> Tạo Job Mới
+                </h3>
+                <button type="button" data-action="close-job-modal" class="text-white/80 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-xl pointer-events-none"></i>
+                </button>
+            </div>
+
+            <form id="jobForm" class="p-4 sm:p-5 space-y-4 max-h-[84vh] overflow-y-auto">
+                <input type="hidden" id="editJobId" value="">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                        <label class="block text-xs font-extrabold uppercase text-slate-600 mb-1">Mã Đơn / Mã Hàng *</label>
+                        <input type="text" id="jobCodeInput" required placeholder="VD: MH-01, ĐƠN-205..." class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-bold uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-extrabold uppercase text-slate-600 mb-1">Tên Job / Ghi chú lô</label>
+                        <input type="text" id="jobTitleInput" placeholder="VD: Quần Tây Nam Lô 1..." class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                        <label class="block text-xs font-extrabold uppercase text-slate-600 mb-1">Màu sắc dây kéo / vải *</label>
+                        <div class="flex gap-1.5">
+                            <select id="jobColorSelect" class="border border-slate-300 rounded-xl px-2.5 py-2.5 text-xs font-bold bg-slate-50 focus:outline-none">
+                                <option value="">Chọn nhanh</option>
+                                <option value="Đen">Đen</option>
+                                <option value="Xanh Đen">Xanh Đen</option>
+                                <option value="Xám Đậm">Xám Đậm</option>
+                                <option value="Xám Nhạt">Xám Nhạt</option>
+                                <option value="Kem / Be">Kem / Be</option>
+                                <option value="Trắng">Trắng</option>
+                                <option value="Nâu">Nâu</option>
+                                <option value="Rêu">Rêu</option>
+                            </select>
+                            <input type="text" id="jobColorInput" required placeholder="Nhập màu..." class="flex-1 min-w-0 border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-extrabold uppercase text-slate-600 mb-1">Kích cỡ (Size) *</label>
+                        <div class="flex gap-1.5">
+                            <select id="jobSizeSelect" class="border border-slate-300 rounded-xl px-2.5 py-2.5 text-xs font-bold bg-slate-50 focus:outline-none">
+                                <option value="">Chọn</option>
+                                <option value="S">S</option>
+                                <option value="M">M</option>
+                                <option value="L">L</option>
+                                <option value="XL">XL</option>
+                                <option value="2XL">2XL</option>
+                                <option value="28">28</option>
+                                <option value="29">29</option>
+                                <option value="30">30</option>
+                                <option value="31">31</option>
+                                <option value="32">32</option>
+                                <option value="34">34</option>
+                                <option value="Đủ Size">Đủ Size</option>
+                            </select>
+                            <input type="text" id="jobSizeInput" required placeholder="Nhập Size..." class="flex-1 min-w-0 border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sub-surface bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                    <div class="flex items-center justify-between flex-wrap gap-1">
+                        <span class="text-xs font-extrabold uppercase text-indigo-700">
+                            <i class="fa-solid fa-calculator mr-1"></i>Tính Bịch & Dây Kéo Riêng Cho Job Này
+                        </span>
+                        <span class="text-[11px] bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-md font-bold">1 Quần = 2 Cọng | 1 Bịch = 100 Cọng</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Tổng số lượng Quần *</label>
+                            <input type="number" id="jobTotalPantsInput" min="1" required placeholder="VD: 250" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-base font-extrabold text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Số Bịch đã làm (1 bịch = 100c)</label>
+                            <input type="number" id="jobDonePantsInput" min="0" step="0.01" value="0" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-base font-extrabold text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200 text-center">
+                        <div class="card-surface bg-white p-2.5 rounded-xl border border-slate-200">
+                            <p class="text-[10px] sm:text-[11px] text-slate-500 font-bold">Tổng Dây Kéo</p>
+                            <p id="previewTotalZippers" class="text-sm sm:text-base font-extrabold text-amber-600">0 cọng</p>
+                        </div>
+                        <div class="card-surface bg-white p-2.5 rounded-xl border border-slate-200">
+                            <p class="text-[10px] sm:text-[11px] text-slate-500 font-bold">Tổng Số Bịch</p>
+                            <p id="previewTotalBags" class="text-xs sm:text-sm font-extrabold text-indigo-600">0 bịch</p>
+                        </div>
+                        <div class="card-surface bg-white p-2.5 rounded-xl border border-slate-200">
+                            <p class="text-[10px] sm:text-[11px] text-slate-500 font-bold">Cọng Còn Lại</p>
+                            <p id="previewRemainingZippers" class="text-sm sm:text-base font-extrabold text-rose-600">0 cọng</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-extrabold uppercase text-slate-600 mb-1">
+                            <i class="fa-regular fa-calendar mr-1 text-indigo-600"></i>Ngày giờ tạo đơn
+                        </label>
+                        <input type="datetime-local" id="jobCreatedDateInput" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-extrabold uppercase text-slate-600 mb-1">Ghi chú thêm</label>
+                        <input type="text" id="jobNoteInput" placeholder="VD: Dây kéo 18cm, may kỹ gara..." class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end space-x-2 pt-3 border-t border-slate-200">
+                    <button type="button" data-action="close-job-modal" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-xs sm:text-sm font-bold hover:bg-slate-100">Hủy</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-extrabold shadow-md btn-press">
+                        <i class="fa-solid fa-cloud-arrow-up mr-1"></i> Lưu Lên Đám Mây
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cửa sổ Lịch sử Job -->
+    <div id="historyModal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-[85] hidden items-center justify-center p-3 overflow-y-auto">
+        <div class="card-surface bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden my-auto border border-slate-200 flex flex-col max-h-[86vh] modal-animate">
+            <div class="bg-slate-900 text-white px-5 py-4 flex items-center justify-between shrink-0">
+                <div>
+                    <h3 class="font-extrabold text-base flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-amber-400"></i> Lịch Sử Chi Tiết & Thời Gian
+                    </h3>
+                    <p id="historyModalSubtitle" class="text-xs text-slate-300 mt-0.5"></p>
+                </div>
+                <button type="button" data-action="close-history-modal" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-xl pointer-events-none"></i>
+                </button>
+            </div>
+
+            <div id="historyTimestampsBox" class="sub-surface bg-slate-100 px-4 py-3 border-b border-slate-200 text-xs shrink-0"></div>
+
+            <div id="historyTimelineContainer" class="p-4 sm:p-5 overflow-y-auto space-y-3 flex-1"></div>
+
+            <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center shrink-0">
+                <button type="button" id="deleteJobFromHistoryBtn" class="text-rose-600 hover:text-rose-700 text-xs font-extrabold flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-rose-50">
+                    <i class="fa-solid fa-trash-can pointer-events-none"></i> <span>Xóa Job này</span>
+                </button>
+                <button type="button" data-action="close-history-modal" class="px-5 py-2 bg-slate-800 text-white text-xs font-extrabold rounded-xl">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getDatabase, ref, set, push, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB5Q4vTnnJvKpp3iewrs_qWwA4QbR_vPHM",
+            authDomain: "random-spin-c385c.firebaseapp.com",
+            databaseURL: "https://random-spin-c385c-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "random-spin-c385c",
+            storageBucket: "random-spin-c385c.firebasestorage.app",
+            messagingSenderId: "285025912715",
+            appId: "1:285025912715:web:11de4fd197c4590f34918e",
+            measurementId: "G-974CCFM9KQ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const jobsRef = ref(db, 'garment_zipper_jobs_v1');
+
+        const browserCache = window['local' + 'Storage'];
+        function saveCache(key, val) {
+            try { browserCache.setItem('garment_cfg_' + key, val); } catch (e) {}
+        }
+        function loadCache(key, fallback = "") {
+            try {
+                const v = browserCache.getItem('garment_cfg_' + key);
+                return v !== null ? v : fallback;
+            } catch (e) { return fallback; }
+        }
+
+        // ================= ÂM THANH & BỘ 8 CHỦ ĐỀ GIAO DIỆN (LƯU GIỮ NGUYÊN) =================
+        let soundEnabled = loadCache('sound', 'true') !== 'false';
+        let soundPack = loadCache('sound_pack', 'crystal');
+        let audioCtx = null;
+
+        function playToneNote(freq, type, startTime, duration, maxGain = 0.14) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, startTime);
+            gain.gain.setValueAtTime(maxGain, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+        }
+
+        function playSoundEffect(type = 'click') {
+            if (!soundEnabled) return;
+            try {
+                if (!audioCtx) {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    audioCtx = new AudioContextClass();
+                }
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const now = audioCtx.currentTime;
+                const wave = soundPack === 'arcade' ? 'square' : (soundPack === 'chime' ? 'sine' : 'triangle');
+                const vol = soundPack === 'arcade' ? 0.07 : 0.15;
+
+                if (type === 'stage1') {
+                    playToneNote(523.25, wave, now, 0.12, vol);
+                    playToneNote(659.25, wave, now + 0.09, 0.22, vol);
+                } else if (type === 'complete_job') {
+                    playToneNote(523.25, wave, now, 0.10, vol);
+                    playToneNote(659.25, wave, now + 0.08, 0.10, vol);
+                    playToneNote(783.99, wave, now + 0.16, 0.12, vol);
+                    playToneNote(1046.50, 'sine', now + 0.24, 0.35, vol * 1.25);
+                } else if (type === 'download') {
+                    playToneNote(783.99, 'sine', now, 0.07, vol);
+                    playToneNote(1046.50, 'sine', now + 0.07, 0.18, vol);
+                } else if (type === 'open') {
+                    playToneNote(440, 'sine', now, 0.06, vol * 0.8);
+                    playToneNote(587.33, 'sine', now + 0.05, 0.11, vol * 0.8);
+                } else if (type === 'calc') {
+                    playToneNote(soundPack === 'arcade' ? 720 : 540, wave, now, 0.035, vol * 0.6);
+                } else if (type === 'error') {
+                    playToneNote(220, 'sawtooth', now, 0.12, vol);
+                    playToneNote(165, 'sawtooth', now + 0.10, 0.22, vol);
+                } else if (type === 'success') {
+                    playToneNote(587.33, wave, now, 0.09, vol);
+                    playToneNote(880, wave, now + 0.08, 0.22, vol);
+                } else {
+                    playToneNote(soundPack === 'chime' ? 500 : 660, wave, now, 0.045, vol * 0.7);
+                }
+            } catch (err) {}
+        }
+
+        const THEMES = {
+            light: {
+                name: 'Sáng Cổ Điển',
+                shortName: 'Sáng',
+                icon: 'fa-sun text-amber-300',
+                isDark: false,
+                bgMain: '#f1f5f9',
+                bgCard: '#ffffff',
+                bgSub: '#f8fafc',
+                borderColor: '#e2e8f0',
+                textColor: '#0f172a',
+                headerGrad: 'linear-gradient(135deg, #3730a3 0%, #4338ca 50%, #1d4ed8 100%)'
+            },
+            dark: {
+                name: 'Tối Hiện Đại',
+                shortName: 'Tối',
+                icon: 'fa-moon text-indigo-300',
+                isDark: true,
+                bgMain: '#0b0f19',
+                bgCard: '#151d2e',
+                bgSub: '#1e293b',
+                borderColor: '#293548',
+                textColor: '#f8fafc',
+                headerGrad: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%)'
+            },
+            ocean: {
+                name: 'Xanh Đại Dương',
+                shortName: 'Đại Dương',
+                icon: 'fa-water text-cyan-200',
+                isDark: false,
+                bgMain: '#e0f2fe',
+                bgCard: '#ffffff',
+                bgSub: '#f0f9ff',
+                borderColor: '#bae6fd',
+                textColor: '#0c4a6e',
+                headerGrad: 'linear-gradient(135deg, #0369a1 0%, #0284c7 50%, #0d9488 100%)'
+            },
+            emerald: {
+                name: 'Xanh Ngọc Bích',
+                shortName: 'Ngọc Bích',
+                icon: 'fa-leaf text-emerald-200',
+                isDark: false,
+                bgMain: '#ecfdf5',
+                bgCard: '#ffffff',
+                bgSub: '#f0fdf4',
+                borderColor: '#a7f3d0',
+                textColor: '#064e3b',
+                headerGrad: 'linear-gradient(135deg, #047857 0%, #059669 50%, #0f766e 100%)'
+            },
+            sunset: {
+                name: 'Hoàng Hôn Ấm',
+                shortName: 'Hoàng Hôn',
+                icon: 'fa-cloud-sun text-amber-200',
+                isDark: false,
+                bgMain: '#fff7ed',
+                bgCard: '#ffffff',
+                bgSub: '#fffbeb',
+                borderColor: '#fed7aa',
+                textColor: '#431407',
+                headerGrad: 'linear-gradient(135deg, #c2410c 0%, #ea580c 50%, #e11d48 100%)'
+            },
+            sakura: {
+                name: 'Hồng Anh Đào',
+                shortName: 'Anh Đào',
+                icon: 'fa-spa text-pink-200',
+                isDark: false,
+                bgMain: '#fdf2f8',
+                bgCard: '#ffffff',
+                bgSub: '#fce7f3',
+                borderColor: '#fbcfe8',
+                textColor: '#831843',
+                headerGrad: 'linear-gradient(135deg, #be185d 0%, #db2777 50%, #e11d48 100%)'
+            },
+            royal: {
+                name: 'Tím Hoàng Gia (Tối)',
+                shortName: 'Hoàng Gia',
+                icon: 'fa-crown text-amber-300',
+                isDark: true,
+                bgMain: '#130722',
+                bgCard: '#21103a',
+                bgSub: '#2e164f',
+                borderColor: '#4c1d95',
+                textColor: '#f5f3ff',
+                headerGrad: 'linear-gradient(135deg, #3b0764 0%, #6b21a8 50%, #9d174d 100%)'
+            },
+            luxury: {
+                name: 'Đen Vàng Kim (Tối)',
+                shortName: 'Vàng Kim',
+                icon: 'fa-gem text-amber-300',
+                isDark: true,
+                bgMain: '#0c0a09',
+                bgCard: '#1c1917',
+                bgSub: '#292524',
+                borderColor: '#57534e',
+                textColor: '#fef3c7',
+                headerGrad: 'linear-gradient(135deg, #1c1917 0%, #44403c 45%, #b45309 100%)'
+            }
+        };
+
+        const THEME_ORDER = ['light', 'dark', 'ocean', 'emerald', 'sunset', 'sakura', 'royal', 'luxury'];
+        let currentThemeKey = loadCache('theme_key', '');
+        if (!currentThemeKey || !THEMES[currentThemeKey]) {
+            const legacyDark = loadCache('dark_mode', 'false') === 'true';
+            currentThemeKey = legacyDark ? 'dark' : 'light';
+        }
+        let currentFont = loadCache('font_family', "'Inter', sans-serif");
+        let currentTextColor = loadCache('text_color', 'default');
+
+        function applyAppearanceSettings() {
+            const theme = THEMES[currentThemeKey] || THEMES.light;
+            document.body.classList.toggle('theme-is-dark', theme.isDark);
+            document.body.classList.toggle('dark-mode', theme.isDark);
+
+            document.documentElement.style.setProperty('--bg-main', theme.bgMain);
+            document.documentElement.style.setProperty('--bg-card', theme.bgCard);
+            document.documentElement.style.setProperty('--bg-sub', theme.bgSub);
+            document.documentElement.style.setProperty('--border-color', theme.borderColor);
+            document.documentElement.style.setProperty('--header-grad', theme.headerGrad);
+
+            const headerThemeIcon = document.getElementById('themeToggleHeaderIcon');
+            const headerThemeBadge = document.getElementById('headerThemeBadge');
+            if (headerThemeIcon) headerThemeIcon.className = `fa-solid ${theme.icon} text-sm pointer-events-none`;
+            if (headerThemeBadge) headerThemeBadge.textContent = theme.shortName;
+
+            document.querySelectorAll('.theme-option-btn').forEach(btn => {
+                const isSelected = btn.dataset.theme === currentThemeKey;
+                btn.classList.toggle('ring-2', isSelected);
+                btn.classList.toggle('ring-amber-400', isSelected);
+                btn.classList.toggle('scale-[1.02]', isSelected);
+            });
+
+            const headerSoundIcon = document.getElementById('soundToggleHeaderIcon');
+            const drawerSoundIcon = document.getElementById('drawerSoundIcon');
+            const drawerSoundText = document.getElementById('drawerSoundText');
+            if (soundEnabled) {
+                if (headerSoundIcon) headerSoundIcon.className = 'fa-solid fa-volume-high text-base pointer-events-none';
+                if (drawerSoundIcon) drawerSoundIcon.className = 'fa-solid fa-volume-high text-emerald-600 pointer-events-none';
+                if (drawerSoundText) drawerSoundText.textContent = 'Âm thanh: Bật';
+            } else {
+                if (headerSoundIcon) headerSoundIcon.className = 'fa-solid fa-volume-xmark text-base text-slate-300 pointer-events-none';
+                if (drawerSoundIcon) drawerSoundIcon.className = 'fa-solid fa-volume-xmark text-rose-500 pointer-events-none';
+                if (drawerSoundText) drawerSoundText.textContent = 'Âm thanh: Tắt';
+            }
+
+            const soundPackSelect = document.getElementById('soundPackSelect');
+            if (soundPackSelect) soundPackSelect.value = soundPack;
+
+            document.documentElement.style.setProperty('--app-font', currentFont);
+            const fontSelect = document.getElementById('fontFamilySelect');
+            if (fontSelect) fontSelect.value = currentFont;
+
+            if (currentTextColor === 'default') {
+                document.body.classList.remove('custom-color-active');
+                document.documentElement.style.setProperty('--app-text-color', theme.textColor);
+            } else {
+                document.body.classList.add('custom-color-active');
+                document.documentElement.style.setProperty('--app-text-color', currentTextColor);
+            }
+        }
+
+        function selectTheme(themeKey) {
+            if (!THEMES[themeKey]) return;
+            currentThemeKey = themeKey;
+            saveCache('theme_key', currentThemeKey);
+            saveCache('dark_mode', String(THEMES[currentThemeKey].isDark));
+            applyAppearanceSettings();
+            playSoundEffect('click');
+            showToast(`Đã áp dụng chủ đề: ${THEMES[currentThemeKey].name}!`);
+        }
+
+        function cycleTheme() {
+            const idx = THEME_ORDER.indexOf(currentThemeKey);
+            const nextKey = THEME_ORDER[(idx + 1) % THEME_ORDER.length];
+            selectTheme(nextKey);
+        }
+
+        function toggleSoundEffect() {
+            soundEnabled = !soundEnabled;
+            saveCache('sound', String(soundEnabled));
+            applyAppearanceSettings();
+            if (soundEnabled) playSoundEffect('success');
+            showToast(soundEnabled ? "Đã BẬT âm thanh thông báo!" : "Đã TẮT âm thanh thông báo!");
+        }
+
+        // ================= NHẬN DIỆN THIẾT BỊ & TÊN =================
+        function detectDeviceName() {
+            const ua = navigator.userAgent;
+            let device = "Thiết bị";
+            if (/iPhone/i.test(ua)) device = "iPhone";
+            else if (/iPad/i.test(ua)) device = "iPad";
+            else if (/Android/i.test(ua)) {
+                const match = ua.match(/Android\s([0-9.]+);\s([^;)]+)/i);
+                if (match && match[2]) {
+                    const model = match[2].replace(/Build\/.*/i, '').trim();
+                    device = `Android (${model})`;
+                } else device = "Android";
+            } else if (/Windows/i.test(ua)) device = "Máy tính Windows";
+            else if (/Macintosh/i.test(ua)) device = "Máy Mac";
+
+            let shortId = loadCache('device_short_id', '');
+            if (!shortId) {
+                shortId = String(Math.floor(100 + Math.random() * 900));
+                saveCache('device_short_id', shortId);
+            }
+            return `${device} #${shortId}`;
+        }
+
+        const autoDetectedDevice = detectDeviceName();
+        let customUserName = loadCache('custom_user_name', '');
+
+        function getActorIdentity() {
+            if (customUserName.trim()) {
+                return `${customUserName.trim()} (${autoDetectedDevice})`;
+            }
+            return autoDetectedDevice;
+        }
+
+        function updateIdentityUI() {
+            const displayEl = document.getElementById('currentIdentityDisplay');
+            const detectedEl = document.getElementById('detectedDeviceName');
+            const drawerInput = document.getElementById('drawerUserNameInput');
+            const savedBadge = document.getElementById('savedNameBadge');
+            const drawerPreview = document.getElementById('drawerSavedIdentityPreview');
+
+            if (detectedEl) detectedEl.textContent = autoDetectedDevice;
+            if (drawerInput && drawerInput.value !== customUserName) {
+                drawerInput.value = customUserName;
+            }
+            if (savedBadge) {
+                savedBadge.classList.toggle('hidden', !customUserName.trim());
+            }
+            const fullIdentity = getActorIdentity();
+            if (drawerPreview) drawerPreview.textContent = fullIdentity;
+
+            if (displayEl) {
+                if (customUserName.trim()) {
+                    displayEl.innerHTML = `<strong class="text-amber-300">${escapeHtml(customUserName)}</strong> <span class="opacity-80">(${escapeHtml(autoDetectedDevice)})</span>`;
+                } else {
+                    displayEl.innerHTML = `<strong class="text-white">${escapeHtml(autoDetectedDevice)}</strong>`;
+                }
+            }
+        }
+
+        function checkFirstTimeVisit() {
+            const hasVisited = loadCache('has_visited_v1', '');
+            if (!hasVisited) {
+                const previewEl = document.getElementById('firstVisitDevicePreview');
+                if (previewEl) previewEl.textContent = autoDetectedDevice;
+                const modal = document.getElementById('firstVisitModal');
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                }
+            }
+        }
+
+        function completeFirstVisit(saveName) {
+            playSoundEffect('click');
+            if (saveName) {
+                const val = document.getElementById('firstVisitNameInput').value.trim();
+                if (val) {
+                    customUserName = val;
+                    saveCache('custom_user_name', customUserName);
+                }
+            }
+            saveCache('has_visited_v1', 'true');
+            updateIdentityUI();
+            const modal = document.getElementById('firstVisitModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+            showToast(customUserName ? `Xin chào ${customUserName}!` : `Đang dùng tên máy: ${autoDetectedDevice}`);
+        }
+
+        applyAppearanceSettings();
+        updateIdentityUI();
+        checkFirstTimeVisit();
+
+        // ================= HÀM FORMAT THỜI GIAN & CÔNG THỨC TÍNH BỊCH / DÂY KÉO =================
+        function formatVNTime(timestamp) {
+            if (!timestamp) return "Chưa có";
+            const d = new Date(Number(timestamp));
+            if (isNaN(d.getTime())) return "Chưa có";
+            const time = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+            const date = d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            return `${time} - ${date}`;
+        }
+
+        function toDatetimeLocalValue(timestamp) {
+            const d = timestamp ? new Date(Number(timestamp)) : new Date();
+            if (isNaN(d.getTime())) return "";
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function escapeHtml(str = "") {
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function showToast(message, type = 'success', customSound = null) {
+            playSoundEffect(customSound || (type === 'success' ? 'success' : 'error'));
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            const bgClass = type === 'success'
+                ? 'bg-emerald-700 border-emerald-300 text-white shadow-emerald-950/40'
+                : 'bg-rose-700 border-rose-300 text-white shadow-rose-950/40';
+            toast.className = `${bgClass} border-2 px-4 py-3 rounded-2xl shadow-2xl text-xs sm:text-sm font-extrabold flex items-center justify-between gap-3 transition-all duration-300 pointer-events-auto w-full modal-animate`;
+            toast.innerHTML = `
+                <div class="flex items-center space-x-2.5">
+                    <i class="fa-solid ${type === 'success' ? 'fa-circle-check text-amber-300' : 'fa-triangle-exclamation text-amber-300'} text-base shrink-0"></i>
+                    <span>${escapeHtml(message)}</span>
+                </div>
+                <span class="text-[10px] bg-black/20 px-2 py-0.5 rounded-full shrink-0">Vừa xong</span>
+            `;
+            container.prepend(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-8px)';
+                setTimeout(() => toast.remove(), 280);
+            }, 3400);
+        }
+
+        function showInlineDetailNotice(msg, isError = false) {
+            const banner = document.getElementById('detailInlineFeedback');
+            if (!banner) return;
+            banner.className = `px-4 py-3 rounded-2xl text-xs sm:text-sm font-extrabold flex items-center justify-between gap-2 transition-all border-2 shadow-sm flash-saved ${
+                isError
+                    ? 'bg-rose-100 text-rose-900 border-rose-400'
+                    : 'bg-emerald-100 text-emerald-950 border-emerald-400'
+            }`;
+            banner.innerHTML = `
+                <span class="flex items-center gap-2">
+                    <i class="fa-solid ${isError ? 'fa-triangle-exclamation text-rose-600' : 'fa-circle-check text-emerald-600'} text-base shrink-0"></i>
+                    <span>${escapeHtml(msg)}</span>
+                </span>
+                <span class="text-[10px] font-bold bg-white/80 px-2 py-0.5 rounded-md shrink-0 text-slate-700">Đã lưu</span>
+            `;
+            banner.classList.remove('hidden');
+        }
+
+        function isStageDone(stageObj) {
+            if (!stageObj) return false;
+            return Boolean(
+                stageObj.done === true ||
+                stageObj.status === 'Đã hoàn thành' ||
+                stageObj.status === 'Đã xác nhận'
+            );
+        }
+
+        function getJobStageState(job) {
+            const stages = job.stages || {};
+            const vatSoDone = isStageDone(stages.vat_so);
+            const rapDayKeoDone = isStageDone(stages.rap_day_keo);
+
+            if (rapDayKeoDone || job.status === 'completed') {
+                return {
+                    code: 'completed',
+                    label: 'Đã Hoàn Thành Đơn',
+                    shortBadge: 'Đã Hoàn Thành',
+                    badgeClass: 'bg-emerald-500 text-white border-emerald-600',
+                    headerClass: 'bg-gradient-to-r from-emerald-700 to-teal-700 text-white',
+                    borderClass: 'border-emerald-400 ring-1 ring-emerald-200/80',
+                    percent: 100,
+                    vatSoDone: true,
+                    rapDayKeoDone: true
+                };
+            }
+            if (vatSoDone) {
+                return {
+                    code: 'vat_so_done',
+                    label: 'Đã Xác Nhận Vắt Sổ',
+                    shortBadge: 'Đã Vắt Sổ',
+                    badgeClass: 'bg-amber-400 text-slate-950 border-amber-500',
+                    headerClass: 'bg-gradient-to-r from-amber-600 to-orange-600 text-white',
+                    borderClass: 'border-amber-400 ring-1 ring-amber-200/70',
+                    percent: 50,
+                    vatSoDone: true,
+                    rapDayKeoDone: false
+                };
+            }
+            return {
+                code: 'pending',
+                label: 'Đang Chờ Công Đoạn',
+                shortBadge: 'Đang Làm',
+                badgeClass: 'bg-slate-700 text-slate-100 border-slate-600',
+                headerClass: 'bg-gradient-to-r from-slate-900 to-indigo-950 text-white',
+                borderClass: 'border-slate-200/90',
+                percent: 0,
+                vatSoDone: false,
+                rapDayKeoDone: false
+            };
+        }
+
+        function calculateZipperMetrics(totalPants, donePants = 0, job = null) {
+            const pants = Math.max(0, parseInt(totalPants, 10) || 0);
+            const totalZippers = pants * 2;
+
+            let doneZippers = 0;
+            if (job && typeof job.doneZippers === 'number' && !isNaN(job.doneZippers)) {
+                doneZippers = Math.min(totalZippers, Math.max(0, Math.round(job.doneZippers)));
+            } else {
+                const rawCompletedPants = Math.min(pants, Math.max(0, Number(donePants) || 0));
+                doneZippers = Math.min(totalZippers, Math.max(0, Math.round(rawCompletedPants * 2)));
+            }
+
+            if (job) {
+                const stages = job.stages || {};
+                if (isStageDone(stages.rap_day_keo) || job.status === 'completed') {
+                    doneZippers = totalZippers;
+                }
+            }
+
+            const completedPants = Math.floor(doneZippers / 2);
+            const remainingPants = Math.max(0, pants - completedPants);
+            const remainingZippers = Math.max(0, totalZippers - doneZippers);
+
+            const fullBags = Math.floor(totalZippers / 100);
+            const looseZippers = totalZippers % 100;
+            const exactBagsDecimal = Number((totalZippers / 100).toFixed(2));
+
+            let bagText = `${fullBags} bịch`;
+            if (looseZippers > 0) {
+                bagText = fullBags > 0 ? `${fullBags} bịch + ${looseZippers}c` : `${looseZippers} cọng (${exactBagsDecimal} bịch)`;
+            }
+
+            const doneFullBags = Math.floor(doneZippers / 100);
+            const doneLooseZippers = doneZippers % 100;
+            const doneBagsDecimal = Number((doneZippers / 100).toFixed(2));
+            let doneBagText = `${doneFullBags} bịch`;
+            if (doneLooseZippers > 0) {
+                doneBagText = doneFullBags > 0 ? `${doneFullBags} bịch + ${doneLooseZippers}c` : `${doneLooseZippers}c (${doneBagsDecimal} bịch)`;
+            }
+
+            const remFullBags = Math.floor(remainingZippers / 100);
+            const remLooseZippers = remainingZippers % 100;
+            const remBagsDecimal = Number((remainingZippers / 100).toFixed(2));
+            let remainingBagText = `${remFullBags} bịch`;
+            if (remLooseZippers > 0) {
+                remainingBagText = remFullBags > 0 ? `${remFullBags} bịch + ${remLooseZippers}c` : `${remLooseZippers}c (${remBagsDecimal} bịch)`;
+            }
+
+            let progressPercent = totalZippers > 0 ? Math.min(100, Math.round((doneZippers / totalZippers) * 100)) : 0;
+            if (job) {
+                const stages = job.stages || {};
+                if (isStageDone(stages.rap_day_keo) || job.status === 'completed') {
+                    progressPercent = 100;
+                } else if (isStageDone(stages.vat_so) && progressPercent === 0) {
+                    progressPercent = 50;
+                }
+            }
+
+            return {
+                pants,
+                completedPants,
+                remainingPants,
+                totalZippers,
+                doneZippers,
+                remainingZippers,
+                fullBags,
+                looseZippers,
+                exactBagsDecimal,
+                doneFullBags,
+                doneLooseZippers,
+                doneBagsDecimal,
+                remBagsDecimal,
+                bagText,
+                doneBagText,
+                remainingBagText,
+                progressPercent
+            };
+        }
+
+        // ================= DỮ LIỆU ĐÁM MÂY FIREBASE =================
+        let allJobsData = {};
+        let currentFilter = 'active';
+        let currentSearchQuery = '';
+        let activeDetailJobId = null;
+        let activeHistoryJobId = null;
+        let isInlineEditOpen = false;
+        let lastDetailNotice = { jobId: null, msg: '', isError: false, time: 0 };
+
+        function setDetailFeedback(jobId, msg, isError = false) {
+            lastDetailNotice = { jobId, msg, isError, time: Date.now() };
+            showInlineDetailNotice(msg, isError);
+        }
+
+        onValue(jobsRef, (snapshot) => {
+            allJobsData = snapshot.val() || {};
+            renderDashboardAndJobs();
+            if (activeDetailJobId && allJobsData[activeDetailJobId]) {
+                if (!isInlineEditOpen) {
+                    const keepMsg = (lastDetailNotice.jobId === activeDetailJobId && (Date.now() - lastDetailNotice.time < 4500))
+                        ? lastDetailNotice.msg
+                        : null;
+                    populateJobDetailModal(activeDetailJobId, keepMsg, lastDetailNotice.isError);
+                }
+            } else if (activeDetailJobId && !allJobsData[activeDetailJobId]) {
+                closeJobDetailModal();
+            }
+            if (activeHistoryJobId && allJobsData[activeHistoryJobId]) {
+                populateHistoryModal(activeHistoryJobId);
+            }
+        }, (error) => {
+            console.error("Firebase Error:", error);
+            showToast("Lỗi kết nối đám mây: " + error.message, "error");
+        });
+
+        function renderDashboardAndJobs() {
+            const jobEntries = Object.entries(allJobsData).map(([id, data]) => ({ id, ...data }));
+            jobEntries.sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
+
+            let totalJobs = jobEntries.length;
+            let vatSoJobsCount = 0;
+            let completedJobs = 0;
+
+            jobEntries.forEach(job => {
+                const st = getJobStageState(job);
+                if (st.code === 'completed') completedJobs++;
+                if (st.vatSoDone) vatSoJobsCount++;
+            });
+
+            document.getElementById('statTotalJobs').textContent = totalJobs.toLocaleString('vi-VN');
+            document.getElementById('statActiveVatSoJobs').textContent = vatSoJobsCount.toLocaleString('vi-VN');
+            document.getElementById('statCompletedJobs').textContent = completedJobs.toLocaleString('vi-VN');
+
+            const filtered = jobEntries.filter(job => {
+                const st = getJobStageState(job);
+                const isCompleted = st.code === 'completed';
+
+                if (currentSearchQuery) {
+                    const q = currentSearchQuery.toLowerCase();
+                    const codeMatch = (job.code || '').toLowerCase().includes(q);
+                    const titleMatch = (job.title || '').toLowerCase().includes(q);
+                    const colorMatch = (job.color || '').toLowerCase().includes(q);
+                    const sizeMatch = (job.size || '').toLowerCase().includes(q);
+                    const noteMatch = (job.note || '').toLowerCase().includes(q);
+                    const creatorMatch = (job.createdBy || '').toLowerCase().includes(q);
+                    let stageActorMatch = false;
+                    if (job.stages) {
+                        Object.values(job.stages).forEach(s => {
+                            if ((s.confirmedBy || '').toLowerCase().includes(q)) stageActorMatch = true;
+                        });
+                    }
+                    return codeMatch || titleMatch || colorMatch || sizeMatch || noteMatch || creatorMatch || stageActorMatch;
+                }
+
+                if (currentFilter === 'active' && isCompleted) return false;
+                if (currentFilter === 'completed' && !isCompleted) return false;
+                return true;
+            });
+
+            const container = document.getElementById('jobsContainer');
+            if (filtered.length === 0) {
+                const emptyLabel = currentSearchQuery
+                    ? `Không tìm thấy đơn Job nào khớp với "${escapeHtml(currentSearchQuery)}"`
+                    : (currentFilter === 'active' ? 'Hiện không có đơn Job nào đang làm' : (currentFilter === 'completed' ? 'Chưa có đơn Job nào hoàn thành' : 'Chưa có đơn Job nào'));
+                container.innerHTML = `
+                    <div class="col-span-full card-surface bg-white rounded-3xl p-10 text-center border border-dashed border-slate-300">
+                        <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3 text-2xl">
+                            <i class="fa-solid fa-box-open"></i>
+                        </div>
+                        <h3 class="font-extrabold dynamic-text text-slate-800 text-base">${emptyLabel}</h3>
+                        <p class="text-xs text-slate-500 mt-1 mb-4">Bạn có thể chuyển tab bộ lọc hoặc nhấn nút bên dưới để Tạo Job Mới.</p>
+                        <button type="button" data-action="open-create-modal" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold px-5 py-2.5 rounded-xl text-xs shadow-sm btn-press">
+                            <i class="fa-solid fa-plus mr-1 pointer-events-none"></i> <span class="pointer-events-none">+ Tạo Job Mới</span>
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(job => buildJobCardHTML(job)).join('');
+        }
+
+        function buildJobCardHTML(job) {
+            const m = calculateZipperMetrics(job.totalPants, job.donePants, job);
+            const st = getJobStageState(job);
+            const stages = job.stages || {};
+            const vatSo = stages.vat_so || {};
+            const rapDk = stages.rap_day_keo || {};
+            const historyCount = job.history ? Object.keys(job.history).length : 0;
+
+            return `
+                <article data-card-job-id="${job.id}" class="cursor-pointer card-surface bg-white rounded-2xl shadow-sm border-2 ${st.borderClass} overflow-hidden flex flex-col justify-between transition hover:shadow-md">
+                    <div class="${st.headerClass} px-3.5 py-3 flex items-center justify-between gap-2">
+                        <div class="flex items-center space-x-2 min-w-0">
+                            <span class="px-2.5 py-1 rounded-lg text-xs font-extrabold uppercase bg-amber-400 text-slate-950 shrink-0 shadow-2xs">
+                                ${escapeHtml(job.code || 'MÃ ĐƠN')}
+                            </span>
+                            <h3 class="font-extrabold text-sm sm:text-base truncate text-white">
+                                ${escapeHtml(job.title || 'Đơn Dây Kéo')}
+                            </h3>
+                        </div>
+
+                        <div class="flex items-center space-x-1 shrink-0">
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase border ${st.badgeClass}">
+                                ${st.shortBadge}
+                            </span>
+                            <button type="button" data-action="history" data-job-id="${job.id}" class="px-2 py-1 rounded-lg bg-white/15 hover:bg-white/25 text-white text-[11px] font-bold flex items-center gap-1 btn-press" title="Xem lịch sử">
+                                <i class="fa-solid fa-clock-rotate-left text-amber-300 pointer-events-none"></i>
+                                <span class="pointer-events-none">${historyCount}</span>
+                            </button>
+                            <button type="button" data-action="download-image" data-job-id="${job.id}" class="p-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-emerald-300 btn-press" title="Tải ảnh thông tin Job">
+                                <i class="fa-solid fa-image text-xs pointer-events-none"></i>
+                            </button>
+                            <button type="button" data-action="delete-job" data-job-id="${job.id}" class="p-1.5 rounded-lg bg-white/15 hover:bg-rose-500/40 text-rose-200 btn-press" title="Xóa Job này">
+                                <i class="fa-solid fa-trash-can text-xs pointer-events-none"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 sm:p-4 space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-1.5">
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-extrabold bg-indigo-50 text-indigo-900 border border-indigo-200">
+                                    <i class="fa-solid fa-palette text-indigo-600"></i> ${escapeHtml(job.color || '-')}
+                                </span>
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-extrabold bg-purple-50 text-purple-900 border border-purple-200">
+                                    <i class="fa-solid fa-tag text-purple-600"></i> Size: ${escapeHtml(job.size || '-')}
+                                </span>
+                            </div>
+                            <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                <i class="fa-regular fa-hand-pointer mr-1"></i>Xem & Sửa Bịch/DK
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-1.5 sub-surface bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-center">
+                            <div>
+                                <p class="text-[10px] text-slate-500 font-bold">Số Bịch (100c)</p>
+                                <p class="text-xs sm:text-sm font-extrabold text-indigo-700">${m.doneBagsDecimal}/${m.exactBagsDecimal} bịch</p>
+                                <p class="text-[10px] text-emerald-700 font-bold">Còn: ${m.remainingBagText}</p>
+                            </div>
+                            <div class="border-x border-slate-200 px-1">
+                                <p class="text-[10px] text-slate-500 font-bold">Cọng Dây Kéo</p>
+                                <p class="text-xs sm:text-sm font-extrabold text-amber-600">${m.doneZippers}/${m.totalZippers}c</p>
+                                <p class="text-[10px] text-rose-600 font-bold">Còn: ${m.remainingZippers}c</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-slate-500 font-bold">Số Quần</p>
+                                <p class="text-xs sm:text-sm font-extrabold dynamic-text text-slate-900">${m.completedPants}/${m.pants}</p>
+                                <p class="text-[10px] text-rose-600 font-bold">Còn: ${m.remainingPants}</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center text-xs mb-1">
+                                <span class="font-extrabold text-slate-600">Tiến độ (${m.doneBagText})</span>
+                                <span class="font-extrabold ${m.progressPercent >= 100 ? 'text-emerald-600' : 'text-indigo-600'}">${m.progressPercent}%</span>
+                            </div>
+                            <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                                <div class="h-full transition-all duration-500 rounded-full ${m.progressPercent >= 100 ? 'bg-emerald-500' : (st.vatSoDone ? 'bg-amber-500' : 'bg-indigo-600')}" style="width: ${m.progressPercent}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 pt-0.5">
+                            <button type="button" data-action="toggle-stage" data-job-id="${job.id}" data-stage="vat_so" class="btn-press text-left p-2.5 rounded-xl border-2 transition flex flex-col justify-between ${st.vatSoDone ? 'bg-amber-50 border-amber-400 text-amber-950' : 'sub-surface bg-slate-50 border-slate-200 text-slate-700 hover:border-indigo-300'}">
+                                <div class="flex items-center justify-between w-full gap-1 pointer-events-none">
+                                    <span class="text-[11px] sm:text-xs font-extrabold flex items-center gap-1">
+                                        <i class="fa-solid ${st.vatSoDone ? 'fa-circle-check text-amber-600' : 'fa-scissors text-slate-400'}"></i>
+                                        1. Vắt Sổ DK
+                                    </span>
+                                    <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded ${st.vatSoDone ? 'bg-amber-400 text-slate-950' : 'bg-indigo-100 text-indigo-700'}">
+                                        ${st.vatSoDone ? 'Đã Vắt Sổ' : 'Xác nhận'}
+                                    </span>
+                                </div>
+                                <p class="text-[10px] mt-1.5 truncate font-semibold pointer-events-none ${st.vatSoDone ? 'text-amber-800' : 'text-slate-400'}">
+                                    ${st.vatSoDone ? `<i class="fa-solid fa-user-check mr-1"></i>${escapeHtml(vatSo.confirmedBy || 'Đã xong')}` : 'Chạm để xác nhận vắt sổ'}
+                                </p>
+                            </button>
+
+                            <button type="button" data-action="toggle-stage" data-job-id="${job.id}" data-stage="rap_day_keo" class="btn-press text-left p-2.5 rounded-xl border-2 transition flex flex-col justify-between ${st.rapDayKeoDone ? 'bg-emerald-50 border-emerald-500 text-emerald-950' : 'sub-surface bg-slate-50 border-slate-200 text-slate-700 hover:border-emerald-300'}">
+                                <div class="flex items-center justify-between w-full gap-1 pointer-events-none">
+                                    <span class="text-[11px] sm:text-xs font-extrabold flex items-center gap-1">
+                                        <i class="fa-solid ${st.rapDayKeoDone ? 'fa-circle-check text-emerald-600' : 'fa-layer-group text-slate-400'}"></i>
+                                        2. Rập DK & Gara
+                                    </span>
+                                    <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded ${st.rapDayKeoDone ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-800'}">
+                                        ${st.rapDayKeoDone ? 'Hoàn Thành' : 'Hoàn thành'}
+                                    </span>
+                                </div>
+                                <p class="text-[10px] mt-1.5 truncate font-semibold pointer-events-none ${st.rapDayKeoDone ? 'text-emerald-800' : 'text-slate-400'}">
+                                    ${st.rapDayKeoDone ? `<i class="fa-solid fa-user-check mr-1"></i>${escapeHtml(rapDk.confirmedBy || 'Đã xong')}` : 'Chạm để hoàn thành đơn'}
+                                </p>
+                            </button>
+                        </div>
+                    </div>
+                </article>
+            `;
+        }
+
+        // ================= CỬA SỔ XEM CHI TIẾT & CHỈNH SỬA SỐ BỊCH / DÂY KÉO (+/-) =================
+        function openJobDetailModal(jobId) {
+            playSoundEffect('open');
+            activeDetailJobId = jobId;
+            isInlineEditOpen = false;
+            populateJobDetailModal(jobId);
+            const modal = document.getElementById('jobDetailModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeJobDetailModal() {
+            activeDetailJobId = null;
+            isInlineEditOpen = false;
+            const modal = document.getElementById('jobDetailModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function populateJobDetailModal(jobId, feedbackMessage = null, feedbackIsError = false) {
+            const job = allJobsData[jobId];
+            if (!job) return;
+            const m = calculateZipperMetrics(job.totalPants, job.donePants, job);
+            const st = getJobStageState(job);
+            const stages = job.stages || {};
+            const vatSoInfo = stages.vat_so || {};
+            const rapInfo = stages.rap_day_keo || {};
+            const historyCount = job.history ? Object.keys(job.history).length : 0;
+
+            const container = document.getElementById('jobDetailModalContent');
+            if (!container) return;
+
+            container.innerHTML = `
+                <!-- Header Chi Tiết -->
+                <div class="${st.headerClass} px-4 sm:px-5 py-3.5 flex items-center justify-between shrink-0">
+                    <div class="min-w-0 pr-2">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="px-2.5 py-0.5 rounded-lg text-xs font-extrabold uppercase bg-amber-400 text-slate-950 shadow-2xs">
+                                ${escapeHtml(job.code || 'MÃ ĐƠN')}
+                            </span>
+                            <span class="text-xs font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-white/20 text-white border border-white/25">
+                                ${st.label} (${m.progressPercent}%)
+                            </span>
+                        </div>
+                        <h3 class="font-extrabold text-base sm:text-lg mt-1 truncate text-white">${escapeHtml(job.title || 'Đơn Hàng Dây Kéo')}</h3>
+                    </div>
+                    <button type="button" id="btnDetailCloseTop" class="w-9 h-9 rounded-xl bg-white/15 hover:bg-white/25 text-white flex items-center justify-center shrink-0 btn-press" title="Đóng">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Nội dung cuộn -->
+                <div class="p-3.5 sm:p-5 overflow-y-auto space-y-4 flex-1">
+                    <!-- Hộp thông báo trạng thái nổi bật ngay đầu cửa sổ chi tiết -->
+                    <div id="detailInlineFeedback" class="${feedbackMessage ? '' : 'hidden'}"></div>
+
+                    <div class="sub-surface bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-3">
+                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                            <span class="text-xs font-extrabold uppercase text-slate-700 flex items-center gap-1.5">
+                                <i class="fa-solid fa-pen-ruler text-indigo-600"></i> Thông Tin Đơn & Tổng Dây Kéo
+                            </span>
+                            <button type="button" id="btnToggleInlineEditTop" class="px-3 py-1.5 rounded-xl ${isInlineEditOpen ? 'bg-rose-600 hover:bg-rose-700' : 'bg-indigo-600 hover:bg-indigo-700'} text-white font-extrabold text-xs shadow-xs btn-press flex items-center gap-1.5">
+                                <i class="fa-solid ${isInlineEditOpen ? 'fa-chevron-up' : 'fa-pen-to-square'}"></i>
+                                <span>${isInlineEditOpen ? 'Thu gọn khung sửa' : 'Bấm Sửa Mã / Tên / Màu / Size / Ngày'}</span>
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                            <div class="card-surface bg-white border border-slate-200 rounded-xl p-2.5">
+                                <span class="text-[10px] font-bold uppercase text-slate-400 block">Mã Đơn</span>
+                                <p class="text-sm font-extrabold text-indigo-700 mt-0.5 truncate">${escapeHtml(job.code || '-')}</p>
+                            </div>
+                            <div class="card-surface bg-white border border-slate-200 rounded-xl p-2.5">
+                                <span class="text-[10px] font-bold uppercase text-slate-400 block">Màu Sắc</span>
+                                <p class="text-sm font-extrabold text-indigo-950 dynamic-text mt-0.5 truncate">${escapeHtml(job.color || '-')}</p>
+                            </div>
+                            <div class="card-surface bg-white border border-slate-200 rounded-xl p-2.5">
+                                <span class="text-[10px] font-bold uppercase text-slate-400 block">Kích Cỡ (Size)</span>
+                                <p class="text-sm font-extrabold text-purple-700 mt-0.5 truncate">Size ${escapeHtml(job.size || '-')}</p>
+                            </div>
+                            <div class="card-surface bg-white border border-slate-200 rounded-xl p-2.5">
+                                <span class="text-[10px] font-bold uppercase text-slate-400 block">Tổng Dây Kéo</span>
+                                <p class="text-sm font-extrabold text-amber-600 mt-0.5 truncate">${m.totalZippers}c (${m.exactBagsDecimal}b)</p>
+                            </div>
+                        </div>
+
+                        ${job.note ? `
+                            <div class="card-surface bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                                <strong><i class="fa-regular fa-note-sticky mr-1 text-indigo-600"></i>Ghi chú:</strong> ${escapeHtml(job.note)}
+                            </div>
+                        ` : ''}
+
+                        
+                        <div id="inlineEditPanel" class="${isInlineEditOpen ? '' : 'hidden'} card-surface bg-white border-2 border-indigo-500 rounded-2xl p-3.5 space-y-3 shadow-lg">
+                            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                                <span class="text-xs font-extrabold uppercase text-indigo-700 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-wrench"></i> Sửa Trực Tiếp Mã Đơn, Tên, Màu, Size, Tổng Số Lượng & Ngày Giờ
+                                </span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                <div>
+                                    <label class="block text-[11px] font-extrabold text-slate-600 mb-1">Mã Đơn / Mã Hàng *</label>
+                                    <input type="text" id="inlineCodeInput" value="${escapeHtml(job.code || '')}" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs font-extrabold uppercase focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-extrabold text-slate-600 mb-1">Tên Job / Tên Lô Hàng</label>
+                                    <input type="text" id="inlineTitleInput" value="${escapeHtml(job.title || '')}" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-extrabold text-slate-600 mb-1">Màu sắc dây kéo / vải *</label>
+                                    <input type="text" id="inlineColorInput" value="${escapeHtml(job.color || '')}" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-extrabold text-slate-600 mb-1">Kích cỡ (Size) *</label>
+                                    <input type="text" id="inlineSizeInput" value="${escapeHtml(job.size || '')}" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-extrabold text-slate-600 mb-1">Tổng Số Lượng Quần (1 quần = 2 cọng) *</label>
+                                    <div class="flex items-center gap-1">
+                                        <button type="button" id="btnInlineMinusTotalPants" class="w-9 h-9 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-700 font-extrabold text-xs btn-press shrink-0" title="Giảm 10 quần (-20 cọng)">-10</button>
+                                        <input type="number" id="inlineTotalPantsInput" min="1" value="${m.pants}" class="w-full text-center border border-slate-300 rounded-xl px-2 py-2 text-xs font-extrabold text-indigo-700 focus:ring-2 focus:ring-indigo-500">
+                                        <button type="button" id="btnInlinePlusTotalPants" class="w-9 h-9 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-extrabold text-xs btn-press shrink-0" title="Tăng 10 quần (+20 cọng)">+10</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-extrabold text-slate-600 mb-1">Ghi chú đơn</label>
+                                    <input type="text" id="inlineNoteInput" value="${escapeHtml(job.note || '')}" placeholder="Nhập ghi chú..." class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-extrabold text-slate-600 mb-1">
+                                        <i class="fa-regular fa-calendar-plus mr-1 text-indigo-600"></i>Ngày Giờ Tạo Đơn
+                                    </label>
+                                    <input type="datetime-local" id="inlineCreatedAtInput" value="${toDatetimeLocalValue(job.createdAt)}" class="w-full border border-slate-300 rounded-xl px-2.5 py-2 text-xs font-bold focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-extrabold text-slate-600 mb-1">
+                                        <i class="fa-regular fa-calendar-check mr-1 text-emerald-600"></i>Ngày Giờ Hoàn Thành
+                                    </label>
+                                    <input type="datetime-local" id="inlineCompletedAtInput" value="${job.completedAt ? toDatetimeLocalValue(job.completedAt) : ''}" class="w-full border border-slate-300 rounded-xl px-2.5 py-2 text-xs font-bold focus:ring-2 focus:ring-emerald-500">
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                                <button type="button" id="btnCancelInlineEdit" class="px-3.5 py-2 rounded-xl border border-slate-300 text-slate-600 text-xs font-bold hover:bg-slate-100">
+                                    Hủy
+                                </button>
+                                <button type="button" id="btnSaveInlineEdit" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-md btn-press flex items-center gap-1.5">
+                                    <i class="fa-solid fa-floppy-disk"></i>
+                                    <span>Lưu Tất Cả Thay Đổi</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bảng Tiến Độ Phần Trăm & Chỉnh Sửa Cộng (+) / Trừ (−) Số Bịch & Dây Kéo -->
+                    <div class="sub-surface bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-3">
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs font-extrabold uppercase text-slate-700">
+                                    <i class="fa-solid fa-chart-line text-indigo-600 mr-1"></i>Thanh Tiến Độ & Số Bịch Dây Kéo
+                                </span>
+                                <span class="text-sm font-extrabold ${m.progressPercent >= 100 ? 'text-emerald-600' : 'text-indigo-600'}">${m.progressPercent}%</span>
+                            </div>
+                            <div class="w-full h-3.5 bg-slate-200 rounded-full overflow-hidden shadow-inner">
+                                <div class="h-full transition-all duration-500 rounded-full ${m.progressPercent >= 100 ? 'bg-emerald-500' : (st.vatSoDone ? 'bg-amber-500' : 'bg-indigo-600')}" style="width: ${m.progressPercent}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2 text-center">
+                            <div class="card-surface bg-white p-2.5 rounded-xl border border-slate-200">
+                                <p class="text-[10px] sm:text-[11px] text-slate-500 font-bold">Số Bịch (100c/bịch)</p>
+                                <p class="text-xs sm:text-sm font-extrabold text-indigo-700 mt-0.5">${m.doneBagsDecimal} / ${m.exactBagsDecimal} bịch</p>
+                                <p class="text-[10px] text-emerald-700 font-extrabold mt-0.5">Còn: ${m.remainingBagText}</p>
+                            </div>
+                            <div class="card-surface bg-white p-2.5 rounded-xl border border-slate-200">
+                                <p class="text-[10px] sm:text-[11px] text-slate-500 font-bold">Dây Kéo (Xong/Tổng)</p>
+                                <p class="text-sm sm:text-base font-extrabold text-amber-600 mt-0.5">${m.doneZippers} / ${m.totalZippers}c</p>
+                                <p class="text-[10px] text-rose-600 font-bold mt-0.5">Còn: ${m.remainingZippers} cọng</p>
+                            </div>
+                            <div class="card-surface bg-white p-2.5 rounded-xl border border-slate-200">
+                                <p class="text-[10px] sm:text-[11px] text-slate-500 font-bold">Quần Tương Ứng</p>
+                                <p class="text-sm sm:text-base font-extrabold dynamic-text text-slate-900 mt-0.5">${m.completedPants} / ${m.pants}</p>
+                                <p class="text-[10px] text-rose-600 font-bold mt-0.5">Còn: ${m.remainingPants} quần</p>
+                            </div>
+                        </div>
+
+                        <!-- Ô Cập Nhật Nhanh Tiến Độ Theo SỐ BỊCH & SỐ CỌNG DÂY KÉO (Có Cộng + & Trừ −) -->
+                        <div class="card-surface bg-white p-3.5 rounded-2xl border-2 border-indigo-200 space-y-3">
+                            <div class="flex items-center justify-between flex-wrap gap-1 text-xs font-extrabold text-indigo-950">
+                                <span class="dynamic-text"><i class="fa-solid fa-sliders mr-1 text-amber-500"></i>Cập nhật nhanh Số Bịch & Dây Kéo đã làm:</span>
+                                <span class="text-[11px] text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200">1 bịch = 100 cọng (50 quần)</span>
+                            </div>
+
+                            
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-end">
+                                <div class="sm:col-span-5">
+                                    <label class="block text-[11px] font-extrabold text-indigo-700 mb-1">
+                                        <i class="fa-solid fa-boxes-stacked mr-1"></i>Số Bịch đã làm:
+                                    </label>
+                                    <div class="flex items-center gap-1">
+                                        <button type="button" id="btnStepMinusHalfBag" class="w-9 h-10 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-700 font-extrabold text-sm btn-press shrink-0" title="Trừ bớt 0.5 bịch (-50 cọng)">−</button>
+                                        <input type="number" id="detailDoneBagsInput" min="0" max="${m.exactBagsDecimal}" step="0.01" value="${m.doneBagsDecimal}" class="w-full text-center border-2 border-indigo-300 rounded-xl px-2 py-2 text-base font-extrabold text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                        <button type="button" id="btnStepPlusHalfBag" class="w-9 h-10 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-extrabold text-sm btn-press shrink-0" title="Cộng thêm 0.5 bịch (+50 cọng)">+</button>
+                                    </div>
+                                    <p class="text-[10px] text-slate-400 mt-0.5 text-center">Tổng đơn: <strong>${m.exactBagsDecimal} bịch</strong></p>
+                                </div>
+
+                                <div class="sm:col-span-4">
+                                    <label class="block text-[11px] font-extrabold text-amber-700 mb-1">
+                                        <i class="fa-solid fa-grip-lines-vertical mr-1"></i>Số Cọng Dây Kéo:
+                                    </label>
+                                    <div class="flex items-center gap-1">
+                                        <button type="button" id="btnStepMinus10Zip" class="w-8 h-10 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-extrabold text-xs border border-rose-200 btn-press shrink-0" title="Trừ 10 cọng">-10</button>
+                                        <input type="number" id="detailDoneZippersInput" min="0" max="${m.totalZippers}" step="2" value="${m.doneZippers}" class="w-full text-center border-2 border-amber-300 rounded-xl px-2 py-2 text-base font-extrabold text-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                                        <button type="button" id="btnStepPlus10Zip" class="w-8 h-10 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-extrabold text-xs border border-emerald-200 btn-press shrink-0" title="Cộng 10 cọng">+10</button>
+                                    </div>
+                                    <p class="text-[10px] text-slate-400 mt-0.5 text-center">Tổng: <strong>${m.totalZippers} cọng</strong></p>
+                                </div>
+
+                                <div class="sm:col-span-3">
+                                    <button type="button" id="btnDetailSaveProgress" class="w-full h-10 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold px-3 rounded-xl text-xs sm:text-sm shadow-md btn-press flex items-center justify-center gap-1.5">
+                                        <i class="fa-solid fa-floppy-disk"></i>
+                                        <span>Lưu Tiến Độ</span>
+                                    </button>
+                                    <p class="text-[10px] text-emerald-600 font-bold mt-0.5 text-center">Bấm để lưu ngay</p>
+                                </div>
+                            </div>
+
+                            <!-- Dãy nút CỘNG (+) nhanh theo Bịch / Cọng -->
+                            <div class="space-y-1.5 pt-1.5 border-t border-slate-100">
+                                <div class="text-[10px] font-extrabold uppercase text-emerald-700 flex items-center justify-between">
+                                    <span><i class="fa-solid fa-circle-plus mr-1"></i>Cộng thêm nhanh (+ Bịch / Cọng):</span>
+                                    <button type="button" id="btnQuickDoneAll" class="text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-0.5 rounded-md font-extrabold btn-press">
+                                        Xong 100% (${m.exactBagsDecimal} bịch)
+                                    </button>
+                                </div>
+                                <div class="grid grid-cols-4 gap-1.5">
+                                    <button type="button" id="btnQuickPlus20Zip" class="text-[11px] font-extrabold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 py-2 px-1.5 rounded-xl border border-emerald-200 btn-press">+20 cọng (0.2b)</button>
+                                    <button type="button" id="btnQuickPlusHalfBag" class="text-[11px] font-extrabold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 py-2 px-1.5 rounded-xl border border-emerald-300 btn-press">+0.5 bịch (+50c)</button>
+                                    <button type="button" id="btnQuickPlus1Bag" class="text-[11px] font-extrabold bg-emerald-100 hover:bg-emerald-200 text-emerald-900 py-2 px-1.5 rounded-xl border border-emerald-400 btn-press">+1 bịch (+100c)</button>
+                                    <button type="button" id="btnQuickPlus2Bags" class="text-[11px] font-extrabold bg-emerald-100 hover:bg-emerald-200 text-emerald-900 py-2 px-1.5 rounded-xl border border-emerald-400 btn-press">+2 bịch (+200c)</button>
+                                </div>
+                            </div>
+
+                            <!-- Dãy nút TRỪ (−) nhanh khi lỡ bấm cộng lố -->
+                            <div class="space-y-1.5 pt-1.5 border-t border-slate-100">
+                                <div class="text-[10px] font-extrabold uppercase text-rose-700 flex items-center justify-between">
+                                    <span><i class="fa-solid fa-circle-minus mr-1"></i>Trừ bớt nếu lỡ cộng lố (− Bịch / Cọng):</span>
+                                    <button type="button" id="btnQuickResetZero" class="text-[10px] bg-rose-100 hover:bg-rose-200 text-rose-700 px-2 py-0.5 rounded-md font-extrabold btn-press">
+                                        Về 0 bịch
+                                    </button>
+                                </div>
+                                <div class="grid grid-cols-4 gap-1.5">
+                                    <button type="button" id="btnQuickMinus20Zip" class="text-[11px] font-extrabold bg-rose-50 hover:bg-rose-100 text-rose-700 py-2 px-1.5 rounded-xl border border-rose-200 btn-press">-20 cọng (-0.2b)</button>
+                                    <button type="button" id="btnQuickMinusHalfBag" class="text-[11px] font-extrabold bg-rose-50 hover:bg-rose-100 text-rose-700 py-2 px-1.5 rounded-xl border border-rose-300 btn-press">-0.5 bịch (-50c)</button>
+                                    <button type="button" id="btnQuickMinus1Bag" class="text-[11px] font-extrabold bg-rose-100 hover:bg-rose-200 text-rose-800 py-2 px-1.5 rounded-xl border border-rose-300 btn-press">-1 bịch (-100c)</button>
+                                    <button type="button" id="btnQuickMinus2Bags" class="text-[11px] font-extrabold bg-rose-100 hover:bg-rose-200 text-rose-800 py-2 px-1.5 rounded-xl border border-rose-300 btn-press">-2 bịch (-200c)</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Xác Nhận 2 Công Đoạn Chính -->
+                    <div class="sub-surface bg-slate-50 p-4 rounded-2xl border-2 border-indigo-200 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs sm:text-sm font-extrabold uppercase dynamic-text text-indigo-950 flex items-center gap-1.5">
+                                <i class="fa-solid fa-check-double text-indigo-600"></i> Xác Nhận 2 Công Đoạn Chính
+                            </h4>
+                            <span class="text-[10px] font-bold bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-md">Bấm trực tiếp để xác nhận</span>
+                        </div>
+
+                        <!-- Nút Công Đoạn 1: Vắt Sổ -->
+                        <button type="button" id="btnDetailStageVatSo" class="w-full text-left cursor-pointer p-3.5 rounded-2xl border-2 transition btn-press ${st.vatSoDone ? 'bg-amber-50 border-amber-400 text-amber-950 shadow-sm' : 'card-surface bg-white border-slate-300 text-slate-800 hover:border-indigo-400'}">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                <div>
+                                    <span class="text-xs sm:text-sm font-extrabold uppercase flex items-center gap-1.5">
+                                        <i class="fa-solid ${st.vatSoDone ? 'fa-circle-check text-amber-600 text-base' : 'fa-scissors text-slate-400'}"></i>
+                                        1. Công Đoạn Vắt Sổ Dây Kéo
+                                    </span>
+                                    ${st.vatSoDone ? `
+                                        <p class="text-xs font-bold text-amber-900 mt-1">
+                                            <i class="fa-solid fa-user-check mr-1"></i>Đã xác nhận bởi: ${escapeHtml(vatSoInfo.confirmedBy || '')}
+                                        </p>
+                                        <p class="text-[11px] text-amber-800/80"><i class="fa-regular fa-clock mr-1"></i>Lúc: ${formatVNTime(vatSoInfo.updatedAt)}</p>
+                                    ` : `
+                                        <p class="text-[11px] text-slate-500 mt-0.5">Nhấn vào đây để xác nhận <strong>Đã Vắt Sổ Dây Kéo</strong></p>
+                                    `}
+                                </div>
+                                <span class="w-full sm:w-auto text-center px-4 py-2.5 rounded-xl font-extrabold text-xs shrink-0 shadow-sm ${st.vatSoDone ? 'bg-amber-400 text-slate-950' : 'bg-indigo-600 text-white'}">
+                                    ${st.vatSoDone ? '<i class="fa-solid fa-rotate-left mr-1"></i>Đã Vắt Sổ (Bấm hoàn tác)' : '<i class="fa-solid fa-check mr-1"></i>Xác Nhận Đã Vắt Sổ'}
+                                </span>
+                            </div>
+                        </button>
+
+                        <!-- Nút Công Đoạn 2: Rập Dây Kéo & Gara -->
+                        <button type="button" id="btnDetailStageRapDk" class="w-full text-left cursor-pointer p-3.5 rounded-2xl border-2 transition btn-press ${st.rapDayKeoDone ? 'bg-emerald-50 border-emerald-500 text-emerald-950 shadow-sm' : 'card-surface bg-white border-slate-300 text-slate-800 hover:border-emerald-400'}">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                <div>
+                                    <span class="text-xs sm:text-sm font-extrabold uppercase flex items-center gap-1.5">
+                                        <i class="fa-solid ${st.rapDayKeoDone ? 'fa-circle-check text-emerald-600 text-base' : 'fa-layer-group text-slate-400'}"></i>
+                                        2. Rập Dây Kéo (Gồm Mắc Gara)
+                                    </span>
+                                    ${st.rapDayKeoDone ? `
+                                        <p class="text-xs font-bold text-emerald-900 mt-1">
+                                            <i class="fa-solid fa-circle-check mr-1"></i>Hoàn thành bởi: ${escapeHtml(rapInfo.confirmedBy || '')}
+                                        </p>
+                                        <p class="text-[11px] text-emerald-800/80"><i class="fa-regular fa-clock mr-1"></i>Lúc: ${formatVNTime(rapInfo.updatedAt)}</p>
+                                    ` : `
+                                        <p class="text-[11px] text-slate-500 mt-0.5">Nhấn vào đây để xác nhận <strong>Hoàn Thành Đơn 100%</strong></p>
+                                    `}
+                                </div>
+                                <span class="w-full sm:w-auto text-center px-4 py-2.5 rounded-xl font-extrabold text-xs shrink-0 shadow-sm bg-emerald-600 text-white">
+                                    ${st.rapDayKeoDone ? '<i class="fa-solid fa-rotate-left mr-1"></i>Đã Hoàn Thành (Bấm hoàn tác)' : '<i class="fa-solid fa-flag-checkered mr-1"></i>Xác Nhận Hoàn Thành Rập DK'}
+                                </span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Thông tin Ngày Giờ -->
+                    <div class="text-xs text-slate-600 sub-surface bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                        <div class="space-y-1">
+                            <p><i class="fa-regular fa-calendar-plus mr-1.5 text-indigo-600"></i>Ngày tạo đơn: <strong class="dynamic-text text-slate-900">${formatVNTime(job.createdAt)}</strong></p>
+                            <p><i class="fa-solid fa-clock-rotate-left mr-1.5 text-amber-600"></i>Cập nhật mới nhất: <strong class="dynamic-text text-slate-900">${formatVNTime(job.updatedAt)}</strong></p>
+                            ${job.completedAt ? `<p class="text-emerald-600 font-extrabold"><i class="fa-regular fa-calendar-check mr-1.5"></i>Ngày hoàn thành: ${formatVNTime(job.completedAt)}</p>` : ''}
+                        </div>
+                        <div class="flex flex-col items-end gap-1.5">
+                            <span class="text-[11px] text-slate-500">Tạo bởi: <strong>${escapeHtml(job.createdBy || 'Thiết bị')}</strong></span>
+                            <button type="button" id="btnChangeDatesQuick" class="text-[11px] font-extrabold text-indigo-600 hover:underline flex items-center gap-1">
+                                <i class="fa-regular fa-calendar-days"></i> <span>Sửa ngày giờ tạo / hoàn thành</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thanh Công Cụ Cuối Cửa Sổ Chi Tiết -->
+                <div class="p-3.5 sm:p-4 sub-surface bg-slate-100 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 shrink-0">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <button type="button" id="btnDetailDownloadImg" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-3.5 py-2.5 rounded-xl text-xs shadow-sm btn-press flex items-center gap-1.5">
+                            <i class="fa-solid fa-image"></i> <span>Tải Ảnh Job</span>
+                        </button>
+                        <button type="button" id="btnDetailEditBottom" class="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold px-3.5 py-2.5 rounded-xl text-xs shadow-sm btn-press flex items-center gap-1.5">
+                            <i class="fa-solid fa-pen-to-square"></i> <span>Sửa Đơn</span>
+                        </button>
+                        <button type="button" id="btnDetailHistoryBottom" class="card-surface bg-white hover:bg-slate-200 text-slate-800 border border-slate-300 font-extrabold px-3 py-2.5 rounded-xl text-xs btn-press flex items-center gap-1">
+                            <i class="fa-solid fa-clock-rotate-left text-amber-500"></i> <span>Lịch sử (${historyCount})</span>
+                        </button>
+                    </div>
+                    <button type="button" id="btnDetailDeleteJob" class="px-3.5 py-2.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-700 font-extrabold text-xs btn-press flex items-center gap-1.5">
+                        <i class="fa-solid fa-trash-can"></i> <span>Xóa Đơn</span>
+                    </button>
+                </div>
+            `;
+
+
+            const bindBtn = (id, fn) => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.onclick = (ev) => {
+                        ev.stopPropagation();
+                        fn(el);
+                    };
+                }
+            };
+
+            const toggleInlineEditFn = () => {
+                playSoundEffect('click');
+                isInlineEditOpen = !isInlineEditOpen;
+                populateJobDetailModal(jobId);
+                if (isInlineEditOpen) {
+                    const panel = document.getElementById('inlineEditPanel');
+                    if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            };
+
+            bindBtn('btnDetailCloseTop', () => closeJobDetailModal());
+            bindBtn('btnToggleInlineEditTop', toggleInlineEditFn);
+            bindBtn('btnCancelInlineEdit', toggleInlineEditFn);
+            bindBtn('btnChangeDatesQuick', () => {
+                isInlineEditOpen = true;
+                populateJobDetailModal(jobId);
+                const createdInp = document.getElementById('inlineCreatedAtInput');
+                if (createdInp) {
+                    createdInp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    createdInp.focus();
+                }
+            });
+            bindBtn('btnInlineMinusTotalPants', () => {
+                const inp = document.getElementById('inlineTotalPantsInput');
+                if (inp) inp.value = Math.max(1, (parseInt(inp.value, 10) || 1) - 10);
+            });
+            bindBtn('btnInlinePlusTotalPants', () => {
+                const inp = document.getElementById('inlineTotalPantsInput');
+                if (inp) inp.value = Math.max(1, (parseInt(inp.value, 10) || 1) + 10);
+            });
+            bindBtn('btnSaveInlineEdit', () => saveInlineJobEdit(jobId));
+
+            const bagsInp = document.getElementById('detailDoneBagsInput');
+            const zipsInp = document.getElementById('detailDoneZippersInput');
+
+            if (bagsInp && zipsInp) {
+                bagsInp.addEventListener('input', () => {
+                    const bVal = Math.max(0, parseFloat(bagsInp.value) || 0);
+                    zipsInp.value = Math.min(m.totalZippers, Math.round(bVal * 100));
+                });
+                zipsInp.addEventListener('input', () => {
+                    const zVal = Math.max(0, parseInt(zipsInp.value, 10) || 0);
+                    bagsInp.value = Number((Math.min(m.totalZippers, zVal) / 100).toFixed(2));
+                });
+            }
+
+            bindBtn('btnDetailSaveProgress', () => {
+                if (zipsInp) {
+                    saveManualZipperProgress(jobId, zipsInp.value);
+                } else if (bagsInp) {
+                    saveManualZipperProgress(jobId, Math.round((parseFloat(bagsInp.value) || 0) * 100));
+                }
+            });
+
+            const adjustZippersDelta = (deltaZippers) => {
+                const currentJob = allJobsData[jobId];
+                if (!currentJob) return;
+                const curM = calculateZipperMetrics(currentJob.totalPants, currentJob.donePants, currentJob);
+                const nextZippers = Math.min(curM.totalZippers, Math.max(0, curM.doneZippers + deltaZippers));
+                saveManualZipperProgress(jobId, nextZippers);
+            };
+
+            // Nút +/- ngay cạnh ô nhập Số Bịch và Số Cọng
+            bindBtn('btnStepMinusHalfBag', () => adjustZippersDelta(-50));
+            bindBtn('btnStepPlusHalfBag', () => adjustZippersDelta(50));
+            bindBtn('btnStepMinus10Zip', () => adjustZippersDelta(-10));
+            bindBtn('btnStepPlus10Zip', () => adjustZippersDelta(10));
+
+            // Dãy nút Cộng (+) nhanh theo bịch / cọng
+            bindBtn('btnQuickPlus20Zip', () => adjustZippersDelta(20));
+            bindBtn('btnQuickPlusHalfBag', () => adjustZippersDelta(50));
+            bindBtn('btnQuickPlus1Bag', () => adjustZippersDelta(100));
+            bindBtn('btnQuickPlus2Bags', () => adjustZippersDelta(200));
+            bindBtn('btnQuickDoneAll', () => saveManualZipperProgress(jobId, m.totalZippers));
+
+            // Dãy nút Trừ (-) nhanh khi lỡ cộng lố
+            bindBtn('btnQuickMinus20Zip', () => adjustZippersDelta(-20));
+            bindBtn('btnQuickMinusHalfBag', () => adjustZippersDelta(-50));
+            bindBtn('btnQuickMinus1Bag', () => adjustZippersDelta(-100));
+            bindBtn('btnQuickMinus2Bags', () => adjustZippersDelta(-200));
+            bindBtn('btnQuickResetZero', () => saveManualZipperProgress(jobId, 0));
+
+            bindBtn('btnDetailStageVatSo', () => toggleStageConfirmation(jobId, 'vat_so'));
+            bindBtn('btnDetailStageRapDk', () => toggleStageConfirmation(jobId, 'rap_day_keo'));
+
+            bindBtn('btnDetailDownloadImg', () => downloadJobImage(jobId));
+            bindBtn('btnDetailEditBottom', toggleInlineEditFn);
+            bindBtn('btnDetailHistoryBottom', () => openHistoryModal(jobId));
+            bindBtn('btnDetailDeleteJob', (btnEl) => deleteJobDirect(jobId, btnEl));
+
+            if (feedbackMessage) {
+                showInlineDetailNotice(feedbackMessage, feedbackIsError);
+            }
+        }
+
+        // ================= XỬ LÝ LƯU TIẾN ĐỘ THEO BỊCH / DÂY KÉO, LƯU THÔNG TIN & XÁC NHẬN CÔNG ĐOẠN =================
+        async function saveManualZipperProgress(jobId, targetZippersValue) {
+            const job = allJobsData[jobId];
+            if (!job) return;
+            const totalPants = Math.max(1, parseInt(job.totalPants, 10) || 0);
+            const totalZippers = totalPants * 2;
+            const cleanDoneZippers = Math.min(totalZippers, Math.max(0, Math.round(Number(targetZippersValue) || 0)));
+            const cleanDonePants = Math.floor(cleanDoneZippers / 2);
+
+            const now = Date.now();
+            const actor = getActorIdentity();
+            const isAllDone = cleanDoneZippers >= totalZippers;
+
+            const stages = job.stages || {};
+            const updatedStages = {
+                vat_so: stages.vat_so || { done: false, confirmedBy: '', updatedAt: null },
+                rap_day_keo: stages.rap_day_keo || { done: false, confirmedBy: '', updatedAt: null }
+            };
+
+            if (isAllDone && !isStageDone(updatedStages.rap_day_keo)) {
+                updatedStages.vat_so = { done: true, status: 'Đã xác nhận', confirmedBy: actor, updatedAt: now };
+                updatedStages.rap_day_keo = { done: true, status: 'Đã hoàn thành', confirmedBy: actor, updatedAt: now };
+            } else if (!isAllDone && isStageDone(updatedStages.rap_day_keo)) {
+                // Tự động mở khóa trạng thái Hoàn Thành nếu người dùng trừ bớt số bịch xuống dưới 100%
+                updatedStages.rap_day_keo = { done: false, status: 'Chưa xong', confirmedBy: '', updatedAt: now };
+            }
+
+            const newStatus = isAllDone ? 'completed' : (isStageDone(updatedStages.vat_so) ? 'vat_so_done' : 'active');
+            const m = calculateZipperMetrics(totalPants, cleanDonePants, {
+                ...job,
+                doneZippers: cleanDoneZippers,
+                stages: updatedStages,
+                status: newStatus
+            });
+
+            const msg = `Đã lưu tiến độ: ${m.doneBagText} (${cleanDoneZippers}/${totalZippers} cọng • ${cleanDonePants}/${totalPants} quần • Đạt ${m.progressPercent}%)!`;
+
+            lastDetailNotice = { jobId, msg, isError: false, time: Date.now() };
+
+            try {
+                allJobsData[jobId] = {
+                    ...job,
+                    donePants: cleanDonePants,
+                    doneZippers: cleanDoneZippers,
+                    stages: updatedStages,
+                    status: newStatus,
+                    updatedAt: now,
+                    completedAt: isAllDone ? (job.completedAt || now) : null
+                };
+                renderDashboardAndJobs();
+                if (activeDetailJobId === jobId) {
+                    populateJobDetailModal(jobId, msg, false);
+                }
+                showToast(msg, 'success', isAllDone ? 'complete_job' : 'success');
+
+                await update(ref(db, `garment_zipper_jobs_v1/${jobId}`), {
+                    donePants: cleanDonePants,
+                    doneZippers: cleanDoneZippers,
+                    stages: updatedStages,
+                    status: newStatus,
+                    updatedAt: now,
+                    completedAt: isAllDone ? (job.completedAt || now) : null
+                });
+
+                await push(ref(db, `garment_zipper_jobs_v1/${jobId}/history`), {
+                    action: `📊 Cập nhật dây kéo: ${m.doneBagText} (${m.progressPercent}%)`,
+                    detail: `Đã làm: ${m.doneBagText} (${cleanDoneZippers}/${totalZippers} cọng • Tương ứng ${cleanDonePants}/${totalPants} quần)`,
+                    actor,
+                    timestamp: now
+                });
+            } catch (err) {
+                if (activeDetailJobId === jobId) {
+                    setDetailFeedback(jobId, "Lỗi lưu tiến độ: " + err.message, true);
+                }
+                showToast("Lỗi lưu tiến độ: " + err.message, "error");
+            }
+        }
+
+        async function saveInlineJobEdit(jobId) {
+            const job = allJobsData[jobId];
+            if (!job) return;
+
+            const codeEl = document.getElementById('inlineCodeInput');
+            const titleEl = document.getElementById('inlineTitleInput');
+            const colorEl = document.getElementById('inlineColorInput');
+            const sizeEl = document.getElementById('inlineSizeInput');
+            const totalPantsEl = document.getElementById('inlineTotalPantsInput');
+            const noteEl = document.getElementById('inlineNoteInput');
+            const createdInput = document.getElementById('inlineCreatedAtInput');
+            const completedInput = document.getElementById('inlineCompletedAtInput');
+
+            const code = (codeEl?.value || '').trim().toUpperCase();
+            if (!code) {
+                showToast("Vui lòng nhập Mã Đơn!", "error");
+                return;
+            }
+            const title = (titleEl?.value || '').trim() || `Lô hàng ${code}`;
+            const color = (colorEl?.value || '').trim() || '-';
+            const size = (sizeEl?.value || '').trim() || '-';
+            const totalPants = Math.max(1, parseInt(totalPantsEl?.value, 10) || 1);
+            const maxZips = totalPants * 2;
+            const prevZips = typeof job.doneZippers === 'number' ? job.doneZippers : (parseInt(job.donePants, 10) || 0) * 2;
+            const doneZippers = Math.min(maxZips, Math.max(0, prevZips));
+            const donePants = Math.floor(doneZippers / 2);
+            const note = (noteEl?.value || '').trim();
+
+            let createdAt = job.createdAt || Date.now();
+            if (createdInput && createdInput.value) {
+                const parsedCreated = new Date(createdInput.value).getTime();
+                if (!isNaN(parsedCreated)) createdAt = parsedCreated;
+            }
+
+            let completedAt = job.completedAt || null;
+            if (completedInput) {
+                if (completedInput.value) {
+                    const parsedComp = new Date(completedInput.value).getTime();
+                    if (!isNaN(parsedComp)) completedAt = parsedComp;
+                } else {
+                    completedAt = null;
+                }
+            }
+
+            const now = Date.now();
+            const actor = getActorIdentity();
+            const m = calculateZipperMetrics(totalPants, donePants, { doneZippers });
+            const successMsg = `Đã lưu chỉnh sửa Mã: ${code}, Màu: ${color}, Size: ${size} & Ngày giờ!`;
+
+            lastDetailNotice = { jobId, msg: successMsg, isError: false, time: Date.now() };
+
+            try {
+                isInlineEditOpen = false;
+                allJobsData[jobId] = {
+                    ...job,
+                    code,
+                    title,
+                    color,
+                    size,
+                    totalPants,
+                    donePants,
+                    doneZippers,
+                    note,
+                    createdAt,
+                    completedAt,
+                    updatedAt: now
+                };
+                renderDashboardAndJobs();
+                if (activeDetailJobId === jobId) {
+                    populateJobDetailModal(jobId, successMsg, false);
+                }
+                showToast(successMsg, 'success');
+
+                await update(ref(db, `garment_zipper_jobs_v1/${jobId}`), {
+                    code,
+                    title,
+                    color,
+                    size,
+                    totalPants,
+                    donePants,
+                    doneZippers,
+                    note,
+                    createdAt,
+                    completedAt,
+                    updatedAt: now
+                });
+
+                await push(ref(db, `garment_zipper_jobs_v1/${jobId}/history`), {
+                    action: "✏️ Chỉnh sửa thông tin & ngày giờ Job",
+                    detail: `Mã: ${code} | Màu: ${color} | Size: ${size} | Tổng: ${totalPants} quần (${m.totalZippers}c = ${m.bagText}) | Ngày tạo: ${formatVNTime(createdAt)}`,
+                    actor,
+                    timestamp: now
+                });
+            } catch (err) {
+                setDetailFeedback(jobId, "Lỗi khi lưu chỉnh sửa: " + err.message, true);
+                showToast("Lỗi khi lưu chỉnh sửa: " + err.message, "error");
+            }
+        }
+
+        async function toggleStageConfirmation(jobId, stageKey) {
+            const job = allJobsData[jobId];
+            if (!job) return;
+
+            const actor = getActorIdentity();
+            const now = Date.now();
+            const stages = job.stages || {};
+            const currentDone = isStageDone(stages[stageKey]);
+            const newDoneState = !currentDone;
+
+            const updatedStages = {
+                vat_so: stages.vat_so || { done: false, confirmedBy: '', updatedAt: null },
+                rap_day_keo: stages.rap_day_keo || { done: false, confirmedBy: '', updatedAt: null }
+            };
+
+            updatedStages[stageKey] = {
+                done: newDoneState,
+                status: newDoneState ? (stageKey === 'rap_day_keo' ? 'Đã hoàn thành' : 'Đã xác nhận') : 'Chưa xong',
+                confirmedBy: newDoneState ? actor : '',
+                updatedAt: now
+            };
+
+            if (stageKey === 'rap_day_keo' && newDoneState && !isStageDone(updatedStages.vat_so)) {
+                updatedStages.vat_so = {
+                    done: true,
+                    status: 'Đã xác nhận',
+                    confirmedBy: actor,
+                    updatedAt: now
+                };
+            }
+
+            const isJobFullyCompleted = isStageDone(updatedStages.rap_day_keo);
+            const isVatSoDone = isStageDone(updatedStages.vat_so);
+
+            let newStatus = 'active';
+            if (isJobFullyCompleted) newStatus = 'completed';
+            else if (isVatSoDone) newStatus = 'vat_so_done';
+
+            const totalZippers = (job.totalPants || 0) * 2;
+            let newDoneZippers = typeof job.doneZippers === 'number' ? job.doneZippers : (job.donePants || 0) * 2;
+            if (isJobFullyCompleted) {
+                newDoneZippers = totalZippers;
+            } else if (stageKey === 'rap_day_keo' && !newDoneState && newDoneZippers >= totalZippers) {
+                newDoneZippers = isVatSoDone ? Math.floor(totalZippers / 2) : 0;
+            } else if (stageKey === 'vat_so' && newDoneState && newDoneZippers === 0) {
+                newDoneZippers = Math.floor(totalZippers / 2);
+            } else if (stageKey === 'vat_so' && !newDoneState && !isJobFullyCompleted) {
+                newDoneZippers = 0;
+            }
+            const newDonePants = Math.floor(newDoneZippers / 2);
+
+            const actionTitle = stageKey === 'vat_so'
+                ? (newDoneState ? "✅ Đã xác nhận Vắt Sổ Dây Kéo" : "↩️ Đã hoàn tác Vắt Sổ Dây Kéo")
+                : (newDoneState ? "🎉 Đã hoàn thành Rập Dây Kéo & Gara (Xong đơn 100%)" : "↩️ Đã hoàn tác Rập Dây Kéo");
+
+            const inlineMsg = `${actionTitle} — Bởi: ${actor}`;
+            lastDetailNotice = { jobId, msg: inlineMsg, isError: false, time: Date.now() };
+
+            try {
+                allJobsData[jobId] = {
+                    ...job,
+                    stages: updatedStages,
+                    status: newStatus,
+                    donePants: newDonePants,
+                    doneZippers: newDoneZippers,
+                    updatedAt: now,
+                    completedAt: isJobFullyCompleted ? now : null
+                };
+                renderDashboardAndJobs();
+                if (activeDetailJobId === jobId) {
+                    populateJobDetailModal(jobId, inlineMsg, false);
+                }
+
+                if (isJobFullyCompleted && newDoneState) {
+                    showToast(`Đơn ${job.code}: ĐÃ HOÀN THÀNH 100%!`, 'success', 'complete_job');
+                } else if (stageKey === 'vat_so' && newDoneState) {
+                    showToast(`Đơn ${job.code}: Đã xác nhận Vắt Sổ Dây Kéo!`, 'success', 'stage1');
+                } else {
+                    showToast(`${actionTitle}!`, 'success');
+                }
+
+                await update(ref(db, `garment_zipper_jobs_v1/${jobId}`), {
+                    stages: updatedStages,
+                    status: newStatus,
+                    donePants: newDonePants,
+                    doneZippers: newDoneZippers,
+                    updatedAt: now,
+                    completedAt: isJobFullyCompleted ? now : null
+                });
+
+                await push(ref(db, `garment_zipper_jobs_v1/${jobId}/history`), {
+                    action: actionTitle,
+                    detail: `Trạng thái đơn: ${isJobFullyCompleted ? 'Đã Hoàn Thành' : (isVatSoDone ? 'Đã Xác Nhận Vắt Sổ' : 'Đang làm')} • Bởi: ${actor}`,
+                    actor,
+                    timestamp: now
+                });
+            } catch (err) {
+                if (activeDetailJobId === jobId) {
+                    setDetailFeedback(jobId, "Lỗi đồng bộ: " + err.message, true);
+                }
+                showToast("Lỗi đồng bộ: " + err.message, "error");
+            }
+        }
+
+        // ================= XÓA ĐƠN HÀNG =================
+        async function deleteJobDirect(jobId, btnEl) {
+            const job = allJobsData[jobId];
+            if (!job) return;
+
+            if (btnEl && btnEl.dataset.confirming === 'true') {
+                try {
+                    const codeBackup = job.code;
+                    await remove(ref(db, `garment_zipper_jobs_v1/${jobId}`));
+                    closeJobDetailModal();
+                    closeHistoryModal();
+                    showToast(`Đã xóa hoàn toàn đơn Job ${codeBackup}!`, 'success');
+                } catch (err) {
+                    showToast("Lỗi khi xóa: " + err.message, "error");
+                }
+            } else if (btnEl) {
+                playSoundEffect('click');
+                btnEl.dataset.confirming = 'true';
+                const origHtml = btnEl.innerHTML;
+                const origClass = btnEl.className;
+                btnEl.className = "px-3.5 py-2 rounded-xl bg-rose-600 text-white text-xs font-extrabold transition animate-pulse shadow-md";
+                btnEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation pointer-events-none mr-1"></i><span class="pointer-events-none">Bấm lần nữa để XÓA!</span>`;
+                showToast(`Bấm vào nút Xóa thêm 1 lần nữa để xác nhận xóa đơn ${job.code}`, 'error');
+                setTimeout(() => {
+                    if (btnEl && document.body.contains(btnEl)) {
+                        btnEl.dataset.confirming = 'false';
+                        btnEl.className = origClass;
+                        btnEl.innerHTML = origHtml;
+                    }
+                }, 4000);
+            }
+        }
+
+        // ================= TẠO & CHỈNH SỬA JOB MODAL =================
+        function updateModalCalculationPreview() {
+            const totalPants = parseInt(document.getElementById('jobTotalPantsInput').value, 10) || 0;
+            const doneBagsVal = parseFloat(document.getElementById('jobDonePantsInput').value) || 0;
+            const doneZippers = Math.min(totalPants * 2, Math.max(0, Math.round(doneBagsVal * 100)));
+            const m = calculateZipperMetrics(totalPants, Math.floor(doneZippers / 2), { doneZippers });
+
+            document.getElementById('previewTotalZippers').textContent = `${m.totalZippers.toLocaleString('vi-VN')} cọng`;
+            document.getElementById('previewTotalBags').textContent = m.bagText;
+            document.getElementById('previewRemainingZippers').textContent = `${m.remainingZippers.toLocaleString('vi-VN')} cọng`;
+        }
+
+        function openCreateJobModal() {
+            playSoundEffect('open');
+            document.getElementById('editJobId').value = '';
+            document.getElementById('jobModalTitle').innerHTML = `<i class="fa-solid fa-folder-plus"></i> Tạo Job Mới`;
+            document.getElementById('jobForm').reset();
+            document.getElementById('jobDonePantsInput').value = 0;
+            document.getElementById('jobCreatedDateInput').value = toDatetimeLocalValue(Date.now());
+            updateModalCalculationPreview();
+            const modal = document.getElementById('jobModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function openEditJobModal(jobId) {
+            playSoundEffect('open');
+            const job = allJobsData[jobId];
+            if (!job) return;
+            const m = calculateZipperMetrics(job.totalPants, job.donePants, job);
+            document.getElementById('editJobId').value = jobId;
+            document.getElementById('jobModalTitle').innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Chỉnh Sửa Job: ${escapeHtml(job.code)}`;
+            document.getElementById('jobCodeInput').value = job.code || '';
+            document.getElementById('jobTitleInput').value = job.title || '';
+            document.getElementById('jobColorInput').value = job.color || '';
+            document.getElementById('jobSizeInput').value = job.size || '';
+            document.getElementById('jobTotalPantsInput').value = job.totalPants || 0;
+            document.getElementById('jobDonePantsInput').value = m.doneBagsDecimal || 0;
+            document.getElementById('jobCreatedDateInput').value = toDatetimeLocalValue(job.createdAt || Date.now());
+            document.getElementById('jobNoteInput').value = job.note || '';
+            updateModalCalculationPreview();
+
+            const modal = document.getElementById('jobModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeJobModal() {
+            const modal = document.getElementById('jobModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        document.getElementById('jobTotalPantsInput').addEventListener('input', updateModalCalculationPreview);
+        document.getElementById('jobDonePantsInput').addEventListener('input', updateModalCalculationPreview);
+        document.getElementById('jobColorSelect').addEventListener('change', function() {
+            if (this.value) document.getElementById('jobColorInput').value = this.value;
+        });
+        document.getElementById('jobSizeSelect').addEventListener('change', function() {
+            if (this.value) document.getElementById('jobSizeInput').value = this.value;
+        });
+
+        document.getElementById('jobForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const editId = document.getElementById('editJobId').value;
+            const code = document.getElementById('jobCodeInput').value.trim().toUpperCase();
+            const title = document.getElementById('jobTitleInput').value.trim() || `Lô hàng ${code}`;
+            const color = document.getElementById('jobColorInput').value.trim();
+            const size = document.getElementById('jobSizeInput').value.trim();
+            const totalPants = Math.max(1, parseInt(document.getElementById('jobTotalPantsInput').value, 10) || 0);
+            const doneBagsInput = Math.max(0, parseFloat(document.getElementById('jobDonePantsInput').value) || 0);
+            const doneZippers = Math.min(totalPants * 2, Math.round(doneBagsInput * 100));
+            const donePants = Math.floor(doneZippers / 2);
+            const note = document.getElementById('jobNoteInput').value.trim();
+            const createdVal = document.getElementById('jobCreatedDateInput').value;
+
+            const now = Date.now();
+            let customCreatedTime = now;
+            if (createdVal) {
+                const parsed = new Date(createdVal).getTime();
+                if (!isNaN(parsed)) customCreatedTime = parsed;
+            }
+
+            const actor = getActorIdentity();
+            const m = calculateZipperMetrics(totalPants, donePants, { doneZippers });
+
+            try {
+                if (!editId) {
+                    const newJobRef = push(jobsRef);
+                    const historyRef = push(ref(db, `garment_zipper_jobs_v1/${newJobRef.key}/history`));
+                    const jobPayload = {
+                        code,
+                        title,
+                        color,
+                        size,
+                        totalPants,
+                        donePants,
+                        doneZippers,
+                        note,
+                        createdAt: customCreatedTime,
+                        updatedAt: now,
+                        completedAt: null,
+                        createdBy: actor,
+                        status: 'active',
+                        stages: {
+                            vat_so: { done: false, confirmedBy: '', updatedAt: null },
+                            rap_day_keo: { done: false, confirmedBy: '', updatedAt: null }
+                        },
+                        history: {
+                            [historyRef.key]: {
+                                action: "🆕 Tạo mới Job",
+                                detail: `Mã: ${code} | Màu: ${color} | Size: ${size} | Số lượng: ${totalPants} quần (${m.totalZippers} cọng = ${m.bagText})`,
+                                actor,
+                                timestamp: now
+                            }
+                        }
+                    };
+                    await set(newJobRef, jobPayload);
+                    showToast(`Đã tạo Job ${code} thành công!`);
+                } else {
+                    await update(ref(db, `garment_zipper_jobs_v1/${editId}`), {
+                        code,
+                        title,
+                        color,
+                        size,
+                        totalPants,
+                        donePants,
+                        doneZippers,
+                        note,
+                        createdAt: customCreatedTime,
+                        updatedAt: now
+                    });
+                    await push(ref(db, `garment_zipper_jobs_v1/${editId}/history`), {
+                        action: "✏️ Chỉnh sửa thông tin Job",
+                        detail: `Cập nhật Mã: ${code}, Màu: ${color}, Size: ${size}, Tổng: ${totalPants} quần (${m.totalZippers} cọng)`,
+                        actor,
+                        timestamp: now
+                    });
+                    showToast(`Đã lưu chỉnh sửa Job ${code}!`);
+                }
+                closeJobModal();
+            } catch (err) {
+                showToast("Lỗi khi lưu: " + err.message, "error");
+            }
+        });
+
+        // ================= XUẤT HÌNH ẢNH PHIẾU JOB =================
+        let lastGeneratedBlob = null;
+        let lastGeneratedFileName = 'Phieu_Job.png';
+        let lastGeneratedDataUrl = '';
+
+        async function triggerManualImageDownload() {
+            playSoundEffect('download');
+            if (!lastGeneratedDataUrl) return;
+            try {
+                if (lastGeneratedBlob && navigator.canShare) {
+                    const file = new File([lastGeneratedBlob], lastGeneratedFileName, { type: 'image/png' });
+                    if (navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            title: lastGeneratedFileName,
+                            files: [file]
+                        });
+                        showToast("Đã mở bảng Lưu / Chia sẻ ảnh!");
+                        return;
+                    }
+                }
+            } catch (e) {}
+
+            try {
+                const a = document.createElement('a');
+                a.href = lastGeneratedDataUrl;
+                a.download = lastGeneratedFileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                showToast(`Đang tải ảnh ${lastGeneratedFileName} về máy!`);
+            } catch (err) {
+                showToast("Hãy nhấn giữ trực tiếp vào hình ảnh để Lưu!", "error");
+            }
+        }
+
+        function downloadJobImage(jobId) {
+            const job = allJobsData[jobId];
+            if (!job) return;
+            playSoundEffect('download');
+
+            const m = calculateZipperMetrics(job.totalPants, job.donePants, job);
+            const st = getJobStageState(job);
+            const stages = job.stages || {};
+            const vatSo = stages.vat_so || {};
+            const rapDk = stages.rap_day_keo || {};
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 860;
+            canvas.height = 680;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = st.code === 'completed' ? '#047857' : (st.code === 'vat_so_done' ? '#d97706' : '#312e81');
+            ctx.fillRect(0, 0, canvas.width, 110);
+
+            ctx.fillStyle = '#fde047';
+            ctx.font = 'bold 19px sans-serif';
+            ctx.fillText('PHIẾU THÔNG TIN ĐƠN HÀNG (DÂY KÉO & GARA)', 35, 40);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 30px sans-serif';
+            ctx.fillText(`MÃ: ${job.code || ''}  —  ${(job.title || '').slice(0, 26)}`, 35, 84);
+
+            ctx.font = 'bold 18px sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(`[ ${st.label.toUpperCase()} - ${m.progressPercent}% ]`, 825, 42);
+            ctx.textAlign = 'left';
+
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 2;
+            ctx.fillRect(30, 130, 800, 245);
+            ctx.strokeRect(30, 130, 800, 245);
+
+            ctx.fillStyle = '#1e1b4b';
+            ctx.font = 'bold 23px sans-serif';
+            ctx.fillText(`• Màu sắc: ${job.color || '-'}`, 55, 175);
+            ctx.fillText(`• Kích cỡ (Size): ${job.size || '-'}`, 460, 175);
+
+            ctx.fillStyle = '#3730a3';
+            ctx.font = 'bold 23px sans-serif';
+            ctx.fillText(`• Số Bịch (100c): Đã làm ${m.doneBagText} / Tổng ${m.bagText}`, 55, 220);
+
+            ctx.fillStyle = '#d97706';
+            ctx.font = 'bold 24px sans-serif';
+            ctx.fillText(`• Tổng Dây Kéo: ${m.doneZippers} / ${m.totalZippers.toLocaleString('vi-VN')} cọng (Còn: ${m.remainingZippers}c)`, 55, 265);
+
+            ctx.fillStyle = '#0f172a';
+            ctx.font = 'bold 22px sans-serif';
+            ctx.fillText(`• Số lượng Quần: ${m.completedPants} / ${m.pants} cái (Còn: ${m.remainingPants} cái)`, 55, 310);
+
+            ctx.fillStyle = '#047857';
+            ctx.font = 'bold 21px sans-serif';
+            ctx.fillText(`• Tiến độ hoàn thành: ${m.progressPercent}%`, 55, 352);
+
+            ctx.fillStyle = '#f1f5f9';
+            ctx.fillRect(30, 395, 800, 195);
+            ctx.strokeRect(30, 395, 800, 195);
+
+            ctx.fillStyle = '#0f172a';
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillText('TRẠNG THÁI 2 CÔNG ĐOẠN CHÍNH:', 55, 432);
+
+            ctx.fillStyle = st.vatSoDone ? '#b45309' : '#64748b';
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillText(
+                `1. Vắt Sổ Dây Kéo: ${st.vatSoDone ? 'ĐÃ XÁC NHẬN VẮT SỔ (' + (vatSo.confirmedBy || '') + ')' : 'Chưa xác nhận'}`,
+                55,
+                475
+            );
+
+            ctx.fillStyle = st.rapDayKeoDone ? '#047857' : '#64748b';
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillText(
+                `2. Rập Dây Kéo & Gara: ${st.rapDayKeoDone ? 'ĐÃ HOÀN THÀNH (' + (rapDk.confirmedBy || '') + ')' : 'Chưa hoàn thành'}`,
+                55,
+                518
+            );
+
+            if (job.note) {
+                ctx.fillStyle = '#334155';
+                ctx.font = 'italic 18px sans-serif';
+                ctx.fillText(`Ghi chú: ${job.note.slice(0, 65)}`, 55, 562);
+            }
+
+            ctx.fillStyle = '#64748b';
+            ctx.font = '15px sans-serif';
+            ctx.fillText(`Tạo lúc: ${formatVNTime(job.createdAt)}   |   Xuất phiếu lúc: ${formatVNTime(Date.now())}`, 35, 640);
+
+            const safeCode = (job.code || 'JOB').replace(/[^a-zA-Z0-9-_]/g, '_');
+            lastGeneratedFileName = `PhieuJob_${safeCode}.png`;
+            lastGeneratedDataUrl = canvas.toDataURL('image/png');
+
+            const imgEl = document.getElementById('generatedJobImageEl');
+            if (imgEl) imgEl.src = lastGeneratedDataUrl;
+
+            const previewModal = document.getElementById('imagePreviewModal');
+            if (previewModal) {
+                previewModal.classList.remove('hidden');
+                previewModal.classList.add('flex');
+            }
+
+            try {
+                const a = document.createElement('a');
+                a.href = lastGeneratedDataUrl;
+                a.download = lastGeneratedFileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                showToast(`Đã tạo ảnh phiếu Job ${job.code}!`);
+            } catch (e) {}
+
+            if (canvas.toBlob) {
+                canvas.toBlob((blob) => {
+                    if (blob) lastGeneratedBlob = blob;
+                }, 'image/png');
+            }
+        }
+
+        function closeImagePreviewModal() {
+            const previewModal = document.getElementById('imagePreviewModal');
+            previewModal.classList.add('hidden');
+            previewModal.classList.remove('flex');
+        }
+
+        // ================= LỊCH SỬ CHI TIẾT =================
+        function openHistoryModal(jobId) {
+            playSoundEffect('open');
+            activeHistoryJobId = jobId;
+            populateHistoryModal(jobId);
+            const modal = document.getElementById('historyModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function populateHistoryModal(jobId) {
+            const job = allJobsData[jobId];
+            if (!job) return;
+            const m = calculateZipperMetrics(job.totalPants, job.donePants, job);
+
+            document.getElementById('historyModalSubtitle').textContent = `Mã đơn: ${job.code} — ${job.title} (${m.exactBagsDecimal} bịch = ${m.totalZippers} cọng)`;
+            document.getElementById('historyTimestampsBox').innerHTML = `
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div class="card-surface bg-white p-2.5 rounded-xl border border-slate-200">
+                        <span class="text-slate-400 block text-[10px] uppercase font-bold">Lúc mới tạo</span>
+                        <strong class="dynamic-text text-slate-800">${formatVNTime(job.createdAt)}</strong>
+                    </div>
+                    <div class="card-surface bg-white p-2.5 rounded-xl border border-slate-200">
+                        <span class="text-slate-400 block text-[10px] uppercase font-bold">Cập nhật gần nhất</span>
+                        <strong class="text-indigo-600">${formatVNTime(job.updatedAt)}</strong>
+                    </div>
+                    <div class="card-surface bg-white p-2.5 rounded-xl border border-slate-200">
+                        <span class="text-slate-400 block text-[10px] uppercase font-bold">Lúc hoàn thành</span>
+                        <strong class="${job.completedAt ? 'text-emerald-600' : 'text-slate-400'}">${job.completedAt ? formatVNTime(job.completedAt) : 'Đang làm'}</strong>
+                    </div>
+                </div>
+            `;
+
+            const historyEntries = job.history ? Object.values(job.history) : [];
+            historyEntries.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+            const timelineEl = document.getElementById('historyTimelineContainer');
+            if (historyEntries.length === 0) {
+                timelineEl.innerHTML = `<p class="text-center text-xs text-slate-400 py-6">Chưa có lịch sử ghi nhận.</p>`;
+            } else {
+                timelineEl.innerHTML = historyEntries.map((item, idx) => `
+                    <div class="relative pl-5 pb-3 border-l-2 ${idx === 0 ? 'border-indigo-500' : 'border-slate-300'}">
+                        <span class="w-3 h-3 rounded-full ${idx === 0 ? 'bg-indigo-600 ring-4 ring-indigo-100' : 'bg-slate-400'} absolute -left-[7px] top-1"></span>
+                        <div class="sub-surface bg-slate-50 border border-slate-200 rounded-xl p-3">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="font-extrabold text-xs dynamic-text text-slate-900">${escapeHtml(item.action)}</span>
+                                <span class="text-[11px] font-mono text-indigo-600 font-bold shrink-0">${formatVNTime(item.timestamp)}</span>
+                            </div>
+                            <p class="text-xs text-slate-600 mt-1">${escapeHtml(item.detail)}</p>
+                            <p class="text-[11px] text-slate-500 mt-1.5 font-semibold">
+                                <i class="fa-solid fa-user-check mr-1 text-indigo-500"></i>Bởi: <strong>${escapeHtml(item.actor)}</strong>
+                            </p>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const delBtn = document.getElementById('deleteJobFromHistoryBtn');
+            delBtn.onclick = () => deleteJobDirect(jobId, delBtn);
+        }
+
+        function closeHistoryModal() {
+            activeHistoryJobId = null;
+            const modal = document.getElementById('historyModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // ================= MÁY TÍNH BỎ TÚI & LỊCH =================
+        let calcExpr = "";
+
+        function calcInput(val) {
+            playSoundEffect('calc');
+            const screen = document.getElementById('calcScreen');
+            const exprEl = document.getElementById('calcExpression');
+
+            if (val === 'C') {
+                calcExpr = "";
+                screen.textContent = "0";
+                exprEl.textContent = "";
+                updateCalculatorHint(0);
+                return;
+            }
+            if (val === 'DEL') {
+                calcExpr = calcExpr.slice(0, -1);
+                screen.textContent = calcExpr || "0";
+                return;
+            }
+            if (val === '=') {
+                try {
+                    if (!calcExpr) return;
+                    const sanitized = calcExpr.replace(/[^0-9+\-*/.%()]/g, '');
+                    const result = Function(`"use strict"; return (${sanitized})`)();
+                    const formatted = Number.isFinite(result) ? Number(result.toFixed(4)) : 0;
+                    exprEl.textContent = `${calcExpr} =`;
+                    calcExpr = String(formatted);
+                    screen.textContent = formatted.toLocaleString('vi-VN');
+                    updateCalculatorHint(formatted);
+                    playSoundEffect('success');
+                } catch (e) {
+                    screen.textContent = "Lỗi";
+                    calcExpr = "";
+                }
+                return;
+            }
+
+            calcExpr += val;
+            screen.textContent = calcExpr;
+            if (/[0-9]$/.test(calcExpr)) {
+                try {
+                    const sanitized = calcExpr.replace(/[^0-9+\-*/.%()]/g, '');
+                    const res = Function(`"use strict"; return (${sanitized})`)();
+                    if (Number.isFinite(res)) updateCalculatorHint(res);
+                } catch (_) {}
+            }
+        }
+
+        function calcQuickConvert(mode) {
+            playSoundEffect('calc');
+            const currentVal = parseFloat(calcExpr) || 0;
+            if (mode === 'pantsToZippers') {
+                const zippers = currentVal * 2;
+                const bags = (zippers / 100).toFixed(2).replace(/\.00$/, '');
+                document.getElementById('calcExpression').textContent = `${currentVal} quần × 2 =`;
+                calcExpr = String(zippers);
+                document.getElementById('calcScreen').textContent = `${zippers.toLocaleString('vi-VN')} cọng`;
+                document.getElementById('calcZipperHint').textContent = `= ${bags} bịch (100 cọng/bịch)`;
+            } else if (mode === 'zippersToBags') {
+                const bags = Number((currentVal / 100).toFixed(2));
+                document.getElementById('calcExpression').textContent = `${currentVal} cọng ÷ 100 =`;
+                calcExpr = String(bags);
+                document.getElementById('calcScreen').textContent = `${bags} bịch`;
+                document.getElementById('calcZipperHint').textContent = `Đủ may cho: ${(currentVal / 2).toLocaleString('vi-VN')} cái quần`;
+            }
+        }
+
+        function updateCalculatorHint(numberVal) {
+            const n = Math.max(0, Number(numberVal) || 0);
+            const zippers = n * 2;
+            const bags = (zippers / 100).toFixed(2).replace(/\.00$/, '');
+            document.getElementById('calcZipperHint').textContent = `${n.toLocaleString('vi-VN')} quần ➔ ${zippers.toLocaleString('vi-VN')} cọng (${bags} bịch)`;
+        }
+
+        let calCurrentDate = new Date();
+        let calSelectedDay = calCurrentDate.getDate();
+        let calSelectedMonth = calCurrentDate.getMonth();
+        let calSelectedYear = calCurrentDate.getFullYear();
+
+        function renderDrawerCalendar() {
+            const year = calCurrentDate.getFullYear();
+            const month = calCurrentDate.getMonth();
+            const today = new Date();
+
+            const monthNames = [
+                "Tháng 01", "Tháng 02", "Tháng 03", "Tháng 04", "Tháng 05", "Tháng 06",
+                "Tháng 07", "Tháng 08", "Tháng 09", "Tháng 10", "Tháng 11", "Tháng 12"
+            ];
+            const dayOfWeekNames = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+
+            const titleEl = document.getElementById('calMonthYearTitle');
+            const subEl = document.getElementById('calTodaySubtext');
+            const gridEl = document.getElementById('calendarDaysGrid');
+            if (!titleEl || !gridEl) return;
+
+            titleEl.textContent = `${monthNames[month]} - ${year}`;
+            const todayStr = `${dayOfWeekNames[today.getDay()]}, ${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+            subEl.textContent = `Hôm nay: ${todayStr}`;
+
+            const firstDayJS = new Date(year, month, 1).getDay();
+            const startOffset = (firstDayJS + 6) % 7;
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const prevMonthDays = new Date(year, month, 0).getDate();
+
+            let html = '';
+            for (let i = startOffset - 1; i >= 0; i--) {
+                const d = prevMonthDays - i;
+                html += `<div class="py-2 rounded-lg text-slate-600 text-[11px] select-none">${d}</div>`;
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const isToday = (day === today.getDate() && month === today.getMonth() && year === today.getFullYear());
+                const isSelected = (day === calSelectedDay && month === calSelectedMonth && year === calSelectedYear);
+                const dayOfWeek = new Date(year, month, day).getDay();
+
+                let cellClass = "bg-slate-800/90 hover:bg-slate-700 text-slate-200";
+                if (dayOfWeek === 0) cellClass = "bg-slate-800/90 hover:bg-slate-700 text-rose-400";
+                else if (dayOfWeek === 6) cellClass = "bg-slate-800/90 hover:bg-slate-700 text-amber-300";
+
+                if (isSelected && !isToday) cellClass = "bg-indigo-600 text-white ring-2 ring-indigo-300";
+                if (isToday) cellClass = "bg-emerald-500 text-slate-950 font-extrabold ring-2 ring-amber-300 shadow-md";
+
+                html += `
+                    <button type="button" data-action="cal-select" data-day="${day}" data-month="${month}" data-year="${year}" class="py-2 rounded-xl text-xs transition btn-press ${cellClass}">
+                        ${day}
+                    </button>
+                `;
+            }
+
+            const totalCells = startOffset + daysInMonth;
+            const trailing = (7 - (totalCells % 7)) % 7;
+            for (let i = 1; i <= trailing; i++) {
+                html += `<div class="py-2 rounded-lg text-slate-600 text-[11px] select-none">${i}</div>`;
+            }
+
+            gridEl.innerHTML = html;
+        }
+
+        renderDrawerCalendar();
+
+        // ================= MENU DRAWER & SỰ KIỆN TOÀN CỤC =================
+        const sideDrawer = document.getElementById('sideDrawer');
+        const drawerOverlay = document.getElementById('drawerOverlay');
+
+        function openDrawer() {
+            playSoundEffect('open');
+            drawerOverlay.classList.remove('hidden');
+            sideDrawer.classList.remove('-translate-x-full');
+        }
+        function closeDrawer() {
+            drawerOverlay.classList.add('hidden');
+            sideDrawer.classList.add('-translate-x-full');
+        }
+
+        document.getElementById('menuBtn').addEventListener('click', openDrawer);
+        document.getElementById('closeDrawerBtn').addEventListener('click', closeDrawer);
+        drawerOverlay.addEventListener('click', closeDrawer);
+
+        document.getElementById('soundPackSelect').addEventListener('change', (e) => {
+            soundPack = e.target.value;
+            saveCache('sound_pack', soundPack);
+            playSoundEffect('complete_job');
+            showToast("Đã đổi kiểu hiệu ứng âm thanh!");
+        });
+
+        document.getElementById('fontFamilySelect').addEventListener('change', (e) => {
+            currentFont = e.target.value;
+            saveCache('font_family', currentFont);
+            applyAppearanceSettings();
+            playSoundEffect('click');
+            showToast("Đã áp dụng phông chữ mới!");
+        });
+
+        document.getElementById('saveUserNameBtn').addEventListener('click', () => {
+            customUserName = document.getElementById('drawerUserNameInput').value.trim();
+            saveCache('custom_user_name', customUserName);
+            updateIdentityUI();
+            showToast(customUserName ? `Đã lưu tên: ${customUserName}` : `Đang dùng tên máy: ${autoDetectedDevice}`);
+        });
+
+        // Trình bắt sự kiện tập trung cho toàn trang
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'jobDetailModal') { closeJobDetailModal(); return; }
+            if (e.target.id === 'jobModal') { closeJobModal(); return; }
+            if (e.target.id === 'historyModal') { closeHistoryModal(); return; }
+            if (e.target.id === 'imagePreviewModal') { closeImagePreviewModal(); return; }
+
+            const actionBtn = e.target.closest('[data-action]');
+            if (actionBtn) {
+                e.stopPropagation();
+                const action = actionBtn.dataset.action;
+                const jobId = actionBtn.dataset.jobId;
+
+                switch (action) {
+                    case 'toggle-stage':
+                        toggleStageConfirmation(jobId, actionBtn.dataset.stage);
+                        break;
+                    case 'history':
+                        openHistoryModal(jobId);
+                        break;
+                    case 'download-image':
+                        downloadJobImage(jobId);
+                        break;
+                    case 'delete-job':
+                        deleteJobDirect(jobId, actionBtn);
+                        break;
+                    case 'edit-job':
+                        closeJobDetailModal();
+                        openEditJobModal(jobId);
+                        break;
+                    case 'close-detail':
+                        closeJobDetailModal();
+                        break;
+                    case 'open-create-modal':
+                        openCreateJobModal();
+                        break;
+                    case 'open-create-from-drawer':
+                        closeDrawer();
+                        openCreateJobModal();
+                        break;
+                    case 'close-job-modal':
+                        closeJobModal();
+                        break;
+                    case 'close-history-modal':
+                        closeHistoryModal();
+                        break;
+                    case 'close-image-modal':
+                        closeImagePreviewModal();
+                        break;
+                    case 'manual-download-image':
+                        triggerManualImageDownload();
+                        break;
+                    case 'cycle-theme':
+                        cycleTheme();
+                        break;
+                    case 'select-theme':
+                        selectTheme(actionBtn.dataset.theme);
+                        break;
+                    case 'toggle-sound':
+                        toggleSoundEffect();
+                        break;
+                    case 'test-sound':
+                        soundEnabled = true;
+                        saveCache('sound', 'true');
+                        applyAppearanceSettings();
+                        playSoundEffect('complete_job');
+                        showToast("Đang phát thử âm thanh thông báo!");
+                        break;
+                    case 'change-color':
+                        currentTextColor = actionBtn.dataset.color || 'default';
+                        saveCache('text_color', currentTextColor);
+                        applyAppearanceSettings();
+                        playSoundEffect('click');
+                        showToast("Đã đổi màu chữ hiển thị!");
+                        break;
+                    case 'calc-key':
+                        calcInput(actionBtn.dataset.key);
+                        break;
+                    case 'calc-convert':
+                        calcQuickConvert(actionBtn.dataset.mode);
+                        break;
+                    case 'cal-nav':
+                        playSoundEffect('click');
+                        calCurrentDate = new Date(calCurrentDate.getFullYear(), calCurrentDate.getMonth() + Number(actionBtn.dataset.delta), 1);
+                        renderDrawerCalendar();
+                        break;
+                    case 'cal-today':
+                        playSoundEffect('click');
+                        calCurrentDate = new Date();
+                        calSelectedDay = calCurrentDate.getDate();
+                        calSelectedMonth = calCurrentDate.getMonth();
+                        calSelectedYear = calCurrentDate.getFullYear();
+                        renderDrawerCalendar();
+                        break;
+                    case 'cal-select':
+                        playSoundEffect('calc');
+                        calSelectedDay = Number(actionBtn.dataset.day);
+                        calSelectedMonth = Number(actionBtn.dataset.month);
+                        calSelectedYear = Number(actionBtn.dataset.year);
+                        renderDrawerCalendar();
+                        break;
+                    case 'first-visit-skip':
+                        completeFirstVisit(false);
+                        break;
+                    case 'first-visit-save':
+                        completeFirstVisit(true);
+                        break;
+                }
+                return;
+            }
+
+            const cardEl = e.target.closest('[data-card-job-id]');
+            if (cardEl) {
+                openJobDetailModal(cardEl.dataset.cardJobId);
+            }
+        });
+
+        // Nhấn Enter trong ô nhập số bịch hoặc số cọng ở Xem Chi Tiết cũng tự động Lưu Tiến Độ
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target && (e.target.id === 'detailDoneBagsInput' || e.target.id === 'detailDoneZippersInput')) {
+                e.preventDefault();
+                if (activeDetailJobId) {
+                    const zipsInp = document.getElementById('detailDoneZippersInput');
+                    if (zipsInp) saveManualZipperProgress(activeDetailJobId, zipsInp.value);
+                }
+            }
+        });
+
+        const searchInput = document.getElementById('searchInput');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+        searchInput.addEventListener('input', (e) => {
+            currentSearchQuery = e.target.value.trim();
+            clearSearchBtn.classList.toggle('hidden', !currentSearchQuery);
+            renderDashboardAndJobs();
+        });
+
+        clearSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            currentSearchQuery = '';
+            clearSearchBtn.classList.add('hidden');
+            renderDashboardAndJobs();
+        });
+
+        document.querySelectorAll('.filter-tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                playSoundEffect('click');
+                document.querySelectorAll('.filter-tab').forEach(b => {
+                    b.className = "filter-tab px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200";
+                });
+                btn.className = "filter-tab px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap bg-indigo-600 text-white shadow-2xs";
+                currentFilter = btn.dataset.filter;
+                renderDashboardAndJobs();
+            });
+        });
+    </script>
+</body>
+</html>
